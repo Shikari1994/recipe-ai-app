@@ -1,0 +1,1 @@
+export { AnimatedMessage } from './AnimatedMessage';

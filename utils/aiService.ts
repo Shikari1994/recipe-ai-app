@@ -1,0 +1,201 @@
+import axios from 'axios';
+import { API_CONFIG, SYSTEM_PROMPT, IMAGE_SYSTEM_PROMPT } from '@/constants/apiConfig';
+import { convertImageToBase64, getImageMimeType } from './imageUtils';
+import { getUserPreferences, getPreferencesPromptText } from './userPreferences';
+import {
+  checkAllergenConflicts,
+  parseAIResponse,
+  type AIRecipe,
+  type AIResponse,
+} from './services';
+
+// Реэкспорт типов для обратной совместимости
+export type { AIRecipe, AIResponse };
+
+/**
+ * Типы для контента сообщения (text или multimodal с изображением)
+ */
+type TextContent = {
+  type: 'text';
+  text: string;
+};
+
+type ImageContent = {
+  type: 'image_url';
+  image_url: {
+    url: string;
+  };
+};
+
+type MessageContent = string | Array<TextContent | ImageContent>;
+
+/**
+ * Отправляет запрос к Gemini через OpenRouter для получения рецептов
+ * @param ingredients - строка с перечислением продуктов (может быть пустой, если есть изображение)
+ * @param imageUri - опциональный URI изображения для анализа
+ * @returns объект с рецептами или ошибкой
+ */
+export async function getRecipesFromAI(
+  ingredients: string,
+  imageUri?: string
+): Promise<AIResponse> {
+  try {
+    // Проверка: должен быть либо текст, либо изображение
+    if ((!ingredients || ingredients.trim().length === 0) && !imageUri) {
+      return {
+        success: false,
+        error: 'Пожалуйста, укажите продукты или загрузите изображение',
+      };
+    }
+
+    // Загружаем настройки пользователя
+    const userPreferences = await getUserPreferences();
+
+    // Проверяем конфликты между вводом пользователя и аллергенами
+    const conflictWarning = checkAllergenConflicts(ingredients, userPreferences.allergens);
+    if (conflictWarning) {
+      return {
+        success: false,
+        error: conflictWarning,
+      };
+    }
+
+    const preferencesText = getPreferencesPromptText(userPreferences);
+
+    // Подготавливаем контент сообщения
+    let messageContent: MessageContent;
+
+    if (imageUri) {
+      // Если есть изображение, используем multimodal формат
+      try {
+        const base64Image = await convertImageToBase64(imageUri);
+        const mimeType = getImageMimeType(imageUri);
+        const prompt = IMAGE_SYSTEM_PROMPT(ingredients.trim() || undefined, preferencesText);
+
+        messageContent = [
+          {
+            type: 'text',
+            text: prompt,
+          },
+          {
+            type: 'image_url',
+            image_url: {
+              url: `data:${mimeType};base64,${base64Image}`,
+            },
+          },
+        ];
+      } catch (error) {
+        console.error('Error processing image:', error);
+        return {
+          success: false,
+          error: `Не удалось обработать изображение: ${error instanceof Error ? error.message : 'Неизвестная ошибка'}`,
+        };
+      }
+    } else {
+      // Если только текст, используем обычный формат
+      messageContent = SYSTEM_PROMPT(ingredients, preferencesText);
+    }
+
+    // Выбираем модель в зависимости от типа запроса
+    const modelToUse = imageUri ? API_CONFIG.VISION_MODEL : API_CONFIG.MODEL;
+
+    // Увеличиваем лимит токенов для vision запросов
+    const maxTokens = imageUri ? 1500 : API_CONFIG.MAX_TOKENS;
+
+    const response = await axios.post(
+      `${API_CONFIG.OPENROUTER_BASE_URL}/chat/completions`,
+      {
+        model: modelToUse,
+        messages: [
+          {
+            role: 'user',
+            content: messageContent,
+          },
+        ],
+        max_tokens: maxTokens,
+        temperature: API_CONFIG.TEMPERATURE,
+      },
+      {
+        headers: {
+          'Authorization': `Bearer ${API_CONFIG.OPENROUTER_API_KEY}`,
+          'Content-Type': 'application/json',
+          'HTTP-Referer': 'https://myapp.com',
+          'X-Title': 'Recipe Assistant',
+        },
+        timeout: 45000, // 45 секунд для vision запросов
+      }
+    );
+
+    // Проверяем ответ от API
+    if (!response.data?.choices?.[0]?.message?.content) {
+      return {
+        success: false,
+        error: 'Не удалось получить ответ от AI',
+      };
+    }
+
+    const aiText = response.data.choices[0].message.content;
+
+    // Парсим ответ AI для извлечения приветствия и рецептов
+    const { greeting, recipes } = parseAIResponse(aiText);
+
+    if (recipes.length === 0) {
+      return {
+        success: true,
+        greeting: greeting || aiText, // Возвращаем приветствие или весь текст
+      };
+    }
+
+    return {
+      success: true,
+      recipes,
+      greeting,
+    };
+
+  } catch (error) {
+    // Обработка различных типов ошибок
+    console.error('Error in getRecipesFromAI:', error);
+
+    if (axios.isAxiosError(error)) {
+      if (error.response) {
+        // Сервер ответил с ошибкой
+        console.error('API Response Error:', error.response.status, error.response.data);
+
+        // Специальная обработка для ошибки 429 (Rate Limit)
+        if (error.response.status === 429) {
+          return {
+            success: false,
+            error: 'Превышен лимит запросов к AI. Подождите немного и попробуйте снова через 1-2 минуты.',
+          };
+        }
+
+        // Специальная обработка для ошибки 402 (Payment Required)
+        if (error.response.status === 402) {
+          return {
+            success: false,
+            error: 'Закончились средства на API ключе. Проверьте баланс на OpenRouter.',
+          };
+        }
+
+        return {
+          success: false,
+          error: `Ошибка API: ${error.response.status} - ${error.response.data?.error?.message || JSON.stringify(error.response.data)}`,
+        };
+      } else if (error.request) {
+        // Запрос был отправлен, но ответа не получено
+        console.error('No response from server:', error.request);
+        return {
+          success: false,
+          error: 'Нет связи с сервером. Проверьте интернет-соединение.',
+        };
+      }
+    }
+
+    // Ошибка при настройке запроса или неизвестная ошибка
+    console.error('Unknown error:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Неизвестная ошибка',
+    };
+  }
+}
