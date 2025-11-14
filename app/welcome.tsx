@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   ScrollView,
   Linking,
-  ImageBackground,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -39,17 +38,15 @@ export default function WelcomeScreen() {
   };
 
   return (
-    <ImageBackground
-      source={require('@/assets/images/dark-gradient-bg.jpg')}
-      style={styles.background}
-      resizeMode="cover"
-    >
+    <View style={styles.container}>
       <LinearGradient
-        colors={['rgba(0,0,0,0.6)', 'rgba(138,43,226,0.3)']}
-        style={styles.overlay}
+        colors={['#1a1a2e', '#16213e', '#0f3460', '#533483', '#8A2BE2']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.gradient}
       >
         <ScrollView
-          contentContainerStyle={styles.container}
+          contentContainerStyle={styles.scrollContainer}
           showsVerticalScrollIndicator={false}
         >
           {/* Иконка приложения */}
@@ -139,20 +136,18 @@ export default function WelcomeScreen() {
           <View style={styles.bottomPadding} />
         </ScrollView>
       </LinearGradient>
-    </ImageBackground>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  background: {
-    flex: 1,
-    width: '100%',
-    height: '100%',
-  },
-  overlay: {
-    flex: 1,
-  },
   container: {
+    flex: 1,
+  },
+  gradient: {
+    flex: 1,
+  },
+  scrollContainer: {
     flexGrow: 1,
     paddingHorizontal: scale(24),
     paddingTop: verticalScale(80),
