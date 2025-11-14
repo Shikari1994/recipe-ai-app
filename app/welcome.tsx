@@ -31,11 +31,11 @@ export default function WelcomeScreen() {
   };
 
   const openTerms = () => {
-    Linking.openURL('https://ЗАМЕНИТЕ_НА_ВАШ_URL/terms.html');
+    Linking.openURL('https://shikari1994.github.io/recipe-ai-app/terms.html');
   };
 
   const openPrivacy = () => {
-    Linking.openURL('https://ЗАМЕНИТЕ_НА_ВАШ_URL/privacy.html');
+    Linking.openURL('https://shikari1994.github.io/recipe-ai-app/privacy.html');
   };
 
   return (

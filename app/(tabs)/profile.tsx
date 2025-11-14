@@ -283,7 +283,7 @@ export default function ProfileScreen() {
         <SettingItem
           icon="document-text"
           title="Условия использования"
-          onPress={() => Linking.openURL('https://ЗАМЕНИТЕ_НА_ВАШ_URL/terms.html')}
+          onPress={() => Linking.openURL('https://shikari1994.github.io/recipe-ai-app/terms.html')}
           borderColor={colors.border}
           textColor={colors.text}
           textSecondaryColor={colors.textSecondary}
@@ -292,7 +292,7 @@ export default function ProfileScreen() {
         <SettingItem
           icon="shield-checkmark"
           title="Политика конфиденциальности"
-          onPress={() => Linking.openURL('https://ЗАМЕНИТЕ_НА_ВАШ_URL/privacy.html')}
+          onPress={() => Linking.openURL('https://shikari1994.github.io/recipe-ai-app/privacy.html')}
           borderColor={colors.border}
           textColor={colors.text}
           textSecondaryColor={colors.textSecondary}
