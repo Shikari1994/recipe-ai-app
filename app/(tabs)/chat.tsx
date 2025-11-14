@@ -23,19 +23,35 @@ import { AIRecipeCard } from '@/components/AIRecipeCard';
 import { AnimatedMessage } from '@/components/chat';
 import { useImagePicker, useChatMessages } from '@/hooks';
 import type { AIRecipe } from '@/utils/aiService';
+import { scale, verticalScale, fontScale, moderateScale, BORDER_RADIUS } from '@/utils/responsive';
+import { getUserPreferences } from '@/utils/userPreferences';
+import { WALLPAPERS, WallpaperConfig } from '@/constants/wallpapers';
+import { useFocusEffect } from '@react-navigation/native';
 
 export default function ChatScreen() {
   const { isDark } = useTheme();
   const [inputText, setInputText] = useState('');
+  const [wallpaperConfig, setWallpaperConfig] = useState<WallpaperConfig | null>(null);
 
   const { selectedImage, showImageOptions, clearImage } = useImagePicker();
   const { messages, scrollViewRef, scrollToBottom, sendMessage, handleRecipePress } =
     useChatMessages();
 
   const themeColors = useMemo(() => getThemeColors(isDark), [isDark]);
-  const backgroundImage = useMemo(
-    () => isDark ? require('@/assets/images/black.png') : require('@/assets/images/white.png'),
-    [isDark]
+
+  // Загрузка выбранных обоев при фокусе на экране
+  useFocusEffect(
+    useCallback(() => {
+      const loadWallpaper = async () => {
+        const prefs = await getUserPreferences();
+        const wallpaperId = prefs.wallpaperId || 'dark-image';
+        const wallpaper = WALLPAPERS.find(w => w.id === wallpaperId);
+        if (wallpaper) {
+          setWallpaperConfig(wallpaper);
+        }
+      };
+      loadWallpaper();
+    }, [])
   );
 
   // Автопрокрутка при новых сообщениях
@@ -57,13 +73,47 @@ export default function ChatScreen() {
 
   const canSend = inputText.trim() || selectedImage;
 
-  return (
-    <ImageBackground source={backgroundImage} style={styles.backgroundImage} resizeMode="cover">
-      <KeyboardAvoidingView
-        style={styles.container}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
-      >
+  // Рендер фона в зависимости от типа обоев
+  const renderBackground = () => {
+    if (!wallpaperConfig) {
+      return null;
+    }
+
+    if (wallpaperConfig.type === 'image' && wallpaperConfig.image) {
+      return (
+        <ImageBackground
+          source={wallpaperConfig.image}
+          style={styles.backgroundImage}
+          resizeMode="cover"
+        >
+          {renderContent()}
+        </ImageBackground>
+      );
+    }
+
+    if (wallpaperConfig.type === 'gradient' && wallpaperConfig.colors) {
+      return (
+        <LinearGradient
+          colors={wallpaperConfig.colors}
+          locations={wallpaperConfig.locations}
+          start={{ x: 0.5, y: 0 }}
+          end={{ x: 0.5, y: 1 }}
+          style={styles.backgroundImage}
+        >
+          {renderContent()}
+        </LinearGradient>
+      );
+    }
+
+    return null;
+  };
+
+  const renderContent = () => (
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+    >
         <ScrollView
           ref={scrollViewRef}
           style={styles.messagesContainer}
@@ -136,7 +186,7 @@ export default function ChatScreen() {
             }
           ]}>
             <BlurView
-              intensity={90}
+              intensity={60}
               tint={isDark ? 'dark' : 'light'}
               style={styles.inputBlur}
               pointerEvents="none"
@@ -146,7 +196,7 @@ export default function ChatScreen() {
               style={styles.inputGradient}
               pointerEvents="none"
             />
-            <View style={styles.inputOverlay} pointerEvents="none" />
+            <View style={[styles.inputOverlay, { backgroundColor: isDark ? 'rgba(0, 0, 0, 0.3)' : 'rgba(255, 255, 255, 0.3)' }]} pointerEvents="none" />
 
             <View style={styles.inputContent}>
               {selectedImage && (
@@ -156,14 +206,14 @@ export default function ChatScreen() {
                     style={styles.removeImageButton}
                     onPress={clearImage}
                   >
-                    <Ionicons name="close-circle" size={24} color={COLORS.primary} />
+                    <Ionicons name="close-circle" size={moderateScale(22)} color={COLORS.primary} />
                   </TouchableOpacity>
                 </View>
               )}
 
               <View style={styles.inputRow}>
                 <TouchableOpacity style={styles.iconButton} onPress={showImageOptions}>
-                  <Ionicons name="camera" size={28} color={COLORS.primary} />
+                  <Ionicons name="camera" size={moderateScale(26)} color={COLORS.primary} />
                 </TouchableOpacity>
 
                 <TextInput
@@ -185,15 +235,16 @@ export default function ChatScreen() {
                   onPress={handleSendMessage}
                   disabled={!canSend}
                 >
-                  <Ionicons name="send" size={24} color="#fff" />
+                  <Ionicons name="send" size={moderateScale(22)} color="#fff" />
                 </TouchableOpacity>
               </View>
             </View>
           </View>
         </View>
       </KeyboardAvoidingView>
-    </ImageBackground>
   );
+
+  return renderBackground();
 }
 
 const styles = StyleSheet.create({
@@ -210,7 +261,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   messagesContent: {
-    padding: SPACING.lg,
+    padding: SPACING.base,
     paddingTop: PLATFORM.contentPaddingTop,
     paddingBottom: SPACING.md,
   },
@@ -220,7 +271,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   messageWrapper: {
-    marginBottom: 12,
+    marginBottom: verticalScale(12),
     maxWidth: '80%',
   },
   userMessageWrapper: {
@@ -230,32 +281,32 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
   messageBubble: {
-    padding: 12,
-    borderRadius: 16,
+    padding: scale(12),
+    borderRadius: BORDER_RADIUS.lg,
   },
   messageText: {
-    fontSize: 16,
-    lineHeight: 22,
+    fontSize: fontScale(14),
+    lineHeight: moderateScale(20),
     color: '#fff',
   },
   messageImage: {
-    width: 200,
-    height: 150,
-    borderRadius: 12,
-    marginBottom: 8,
+    width: scale(180),
+    height: verticalScale(135),
+    borderRadius: BORDER_RADIUS.md,
+    marginBottom: verticalScale(8),
   },
   loadingContainer: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   aiRecipesContainer: {
-    marginTop: 8,
+    marginTop: verticalScale(8),
     paddingHorizontal: 0,
   },
   recipeGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
+    gap: scale(8),
     justifyContent: 'flex-start',
   },
   recipeCardWrapper: {
@@ -263,18 +314,23 @@ const styles = StyleSheet.create({
   },
   inputContainerWrapper: {
     paddingHorizontal: LAYOUT.containerPadding,
-    paddingBottom: LAYOUT.chatInputContainerBottom,
+    paddingBottom: Platform.select({
+      ios: verticalScale(96),
+      android: verticalScale(88),
+      default: verticalScale(88),
+    }),
   },
   inputContainer: {
     position: 'relative',
-    borderRadius: 35,
+    borderRadius: scale(30),
     borderWidth: 1,
     overflow: 'hidden',
     shadowColor: COLORS.purple.shadow,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 20,
-    elevation: 8,
+    shadowOffset: { width: 0, height: verticalScale(10) },
+    shadowOpacity: 0.15,
+    shadowRadius: scale(20),
+    elevation: 10,
+    height: verticalScale(56),
   },
   inputBlur: {
     ...StyleSheet.absoluteFillObject,
@@ -284,60 +340,59 @@ const styles = StyleSheet.create({
   },
   inputOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
   },
   inputContent: {
     position: 'relative',
     zIndex: 1,
-    paddingHorizontal: 20,
-    minHeight: 70,
+    paddingHorizontal: scale(20),
+    height: verticalScale(56),
+    justifyContent: 'center',
   },
   selectedImageContainer: {
     position: 'relative',
-    marginTop: 12,
-    marginBottom: 12,
+    marginTop: verticalScale(10),
+    marginBottom: verticalScale(10),
   },
   selectedImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 8,
+    width: scale(72),
+    height: scale(72),
+    borderRadius: BORDER_RADIUS.sm,
   },
   removeImageButton: {
     position: 'absolute',
-    top: -8,
-    right: -8,
+    top: scale(-8),
+    right: scale(-8),
     backgroundColor: '#fff',
-    borderRadius: 12,
+    borderRadius: BORDER_RADIUS.md,
   },
   inputRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    height: 70,
-    gap: 12,
+    gap: scale(10),
   },
   iconButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: scale(40),
+    height: scale(40),
+    borderRadius: scale(20),
     justifyContent: 'center',
     alignItems: 'center',
   },
   input: {
     flex: 1,
-    fontSize: 16,
-    minHeight: 44,
-    maxHeight: 54,
-    paddingTop: Platform.OS === 'ios' ? 15 : 13,
+    fontSize: fontScale(14),
+    minHeight: verticalScale(40),
+    maxHeight: verticalScale(48),
+    paddingTop: Platform.OS === 'ios' ? verticalScale(13) : verticalScale(11),
     paddingBottom: 0,
     textAlignVertical: 'top',
     includeFontPadding: false,
-    lineHeight: 22,
+    lineHeight: moderateScale(20),
   },
   sendButton: {
     backgroundColor: COLORS.primary,
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: scale(40),
+    height: scale(40),
+    borderRadius: scale(20),
     justifyContent: 'center',
     alignItems: 'center',
   },

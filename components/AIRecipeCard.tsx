@@ -5,6 +5,7 @@ import { BlurCard } from '@/components/ui';
 import { AIRecipe } from '@/utils/aiService';
 import { COLORS, getThemeColors } from '@/constants/colors';
 import { getRussianPlural } from '@/utils/textUtils';
+import { scale, verticalScale, fontScale, moderateScale, BORDER_RADIUS } from '@/utils/responsive';
 
 type AIRecipeCardProps = {
   recipe: AIRecipe;
@@ -22,7 +23,7 @@ export const AIRecipeCard = React.memo(({ recipe, isDark, onPress }: AIRecipeCar
     <TouchableOpacity onPress={onPress} activeOpacity={0.8}>
       <BlurCard
         isDark={isDark}
-        intensity={90}
+        intensity={60}
         gradientColors={isDark ? COLORS.gradient.purple.dark : COLORS.gradient.purple.light}
         style={styles.card}
         contentStyle={styles.content}
@@ -30,13 +31,13 @@ export const AIRecipeCard = React.memo(({ recipe, isDark, onPress }: AIRecipeCar
         borderColor={isDark ? COLORS.purple.medium : COLORS.purple.light}
         shadowColor={COLORS.purple.shadow}
       >
-        <View style={styles.overlay} pointerEvents="none" />
+        <View style={[styles.overlay, { backgroundColor: isDark ? 'rgba(0, 0, 0, 0.3)' : 'rgba(255, 255, 255, 0.3)' }]} pointerEvents="none" />
         <View style={styles.header}>
           <Text style={[styles.name, { color: themeColors.text }]} numberOfLines={2}>
             {recipe.title}
           </Text>
           <View style={styles.meta}>
-            <Ionicons name="time-outline" size={14} color={themeColors.textSecondary} />
+            <Ionicons name="time-outline" size={moderateScale(13)} color={themeColors.textSecondary} />
             <Text style={[styles.metaText, { color: themeColors.textSecondary }]}>
               {recipe.time}
             </Text>
@@ -60,48 +61,47 @@ export const AIRecipeCard = React.memo(({ recipe, isDark, onPress }: AIRecipeCar
 const styles = StyleSheet.create({
   card: {
     width: '100%',
-    height: 170,
+    height: verticalScale(160),
     alignSelf: 'flex-start',
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
   },
   content: {
-    padding: 14,
+    padding: scale(12),
     flex: 1,
     flexDirection: 'column',
     justifyContent: 'space-between',
   },
   header: {
-    marginBottom: 8,
+    marginBottom: verticalScale(6),
   },
   name: {
-    fontSize: 16,
+    fontSize: fontScale(14),
     fontWeight: '600',
-    marginBottom: 6,
-    lineHeight: 20,
+    marginBottom: verticalScale(4),
+    lineHeight: moderateScale(17),
   },
   meta: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: scale(4),
   },
   metaText: {
-    fontSize: 12,
+    fontSize: fontScale(11),
   },
   description: {
-    fontSize: 13,
-    lineHeight: 18,
-    marginBottom: 8,
+    fontSize: fontScale(11),
+    lineHeight: moderateScale(15),
+    marginBottom: verticalScale(6),
   },
   footer: {
     borderTopWidth: 1,
     borderTopColor: 'rgba(138, 43, 226, 0.15)',
-    paddingTop: 8,
+    paddingTop: verticalScale(6),
   },
   ingredients: {
-    fontSize: 12,
+    fontSize: fontScale(10),
     fontStyle: 'italic',
   },
 });

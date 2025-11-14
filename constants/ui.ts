@@ -1,43 +1,37 @@
 import { Platform } from 'react-native';
+import { scale, verticalScale, moderateScale, fontScale, SPACING as RESPONSIVE_SPACING, BORDER_RADIUS, ICON_SIZES } from '@/utils/responsive';
 
 /**
  * UI константы для размеров, отступов, радиусов и других магических чисел
+ * Теперь с адаптивными размерами!
  */
 
 // Размеры
 export const SIZES = {
   // Иконки
-  iconSmall: 20,
-  iconMedium: 24,
-  iconLarge: 32,
-  iconExtraLarge: 64,
+  iconSmall: ICON_SIZES.sm,
+  iconMedium: ICON_SIZES.base,
+  iconLarge: ICON_SIZES.xl,
+  iconExtraLarge: scale(64),
 
   // Кнопки и элементы управления
-  buttonHeight: 60,
-  inputHeight: 50,
-  tabBarHeight: 60,
+  buttonHeight: verticalScale(50),
+  inputHeight: verticalScale(44),
+  tabBarHeight: verticalScale(60),
 
   // Карточки
-  cardBorderRadius: 24,
-  smallBorderRadius: 16,
-  buttonBorderRadius: 12,
+  cardBorderRadius: BORDER_RADIUS.xl,
+  smallBorderRadius: BORDER_RADIUS.lg,
+  buttonBorderRadius: BORDER_RADIUS.md,
 
   // Аватары и круглые элементы
-  avatarSmall: 32,
-  avatarMedium: 64,
-  avatarLarge: 120,
+  avatarSmall: scale(32),
+  avatarMedium: scale(64),
+  avatarLarge: scale(120),
 } as const;
 
-// Отступы
-export const SPACING = {
-  xs: 4,
-  sm: 8,
-  md: 12,
-  lg: 16,
-  xl: 20,
-  xxl: 24,
-  xxxl: 32,
-} as const;
+// Отступы (используем адаптивные из responsive.ts)
+export const SPACING = RESPONSIVE_SPACING;
 
 // Анимации
 export const ANIMATION = {
@@ -104,72 +98,73 @@ export const SHADOWS = {
 export const PLATFORM = {
   // Keyboard offset для iOS/Android
   keyboardVerticalOffset: Platform.select({
-    ios: 90,
+    ios: verticalScale(90),
     android: 0,
     default: 0,
   }),
 
   // Tab bar отступ снизу
   tabBarMarginBottom: Platform.select({
-    ios: 30,
-    android: 20,
-    default: 20,
+    ios: verticalScale(30),
+    android: verticalScale(20),
+    default: verticalScale(20),
   }),
 
   // Status bar высота
   statusBarHeight: Platform.select({
-    ios: 44,
+    ios: verticalScale(44),
     android: 0,
     default: 0,
   }),
 
   // Safe area отступы
   safeArea: {
-    top: Platform.select({ ios: 44, default: 0 }),
-    bottom: Platform.select({ ios: 34, default: 0 }),
+    top: Platform.select({ ios: verticalScale(44), default: 0 }),
+    bottom: Platform.select({ ios: verticalScale(34), default: 0 }),
   },
 
   // Content padding top
   contentPaddingTop: Platform.select({
-    ios: 60,
-    android: 40,
-    default: 40,
+    ios: verticalScale(60),
+    android: verticalScale(40),
+    default: verticalScale(40),
   }),
 } as const;
 
 // Layout
 export const LAYOUT = {
   // Максимальная ширина для карточек
-  maxCardWidth: 350,
+  maxCardWidth: scale(350),
 
   // Отступы для контейнеров
-  containerPadding: 20,
-  scrollContentPadding: 20,
+  containerPadding: scale(20),
+  scrollContentPadding: scale(20),
 
   // Chat специфичные отступы
-  chatBottomPadding: 180,
+  chatBottomPadding: verticalScale(180),
+  // УМЕНЬШИЛИ отступ для строки ввода - была проблема №1
   chatInputContainerBottom: Platform.select({
-    ios: 140,
-    android: 110,
-    default: 110,
+    ios: verticalScale(20),
+    android: verticalScale(12),
+    default: verticalScale(12),
   }),
 } as const;
 
-// Typography
+// Typography (адаптивные размеры шрифтов)
 export const TYPOGRAPHY = {
   fontSize: {
-    xs: 12,
-    sm: 14,
-    md: 16,
-    lg: 18,
-    xl: 20,
-    xxl: 24,
-    xxxl: 32,
+    xs: fontScale(11),    // было 12, уменьшили
+    sm: fontScale(13),    // было 14, уменьшили
+    md: fontScale(15),    // было 16, уменьшили
+    lg: fontScale(17),    // было 18, уменьшили
+    xl: fontScale(19),    // было 20, уменьшили
+    xxl: fontScale(22),   // было 24, уменьшили
+    xxxl: fontScale(28),  // было 32, уменьшили
   },
   lineHeight: {
-    tight: 20,
-    normal: 24,
-    relaxed: 28,
+    tight: moderateScale(18),
+    normal: moderateScale(22),
+    relaxed: moderateScale(26),
   },
   fontWeight: {
     regular: '400' as const,

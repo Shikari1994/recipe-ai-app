@@ -5,6 +5,8 @@ import { Platform, Dimensions, TouchableOpacity, Animated, StyleSheet } from 're
 import { BlurView } from 'expo-blur';
 import { COLORS } from '@/constants/colors';
 import React, { useEffect, useRef } from 'react';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { verticalScale, scale, moderateScale } from '@/utils/responsive';
 
 interface AnimatedTabBarButtonProps {
   children: React.ReactNode;
@@ -69,10 +71,14 @@ function AnimatedTabBarButton({ children, onPress, accessibilityState }: Animate
 
 export default function TabsLayout() {
   const { colors, isDark } = useTheme();
+  const insets = useSafeAreaInsets();
   const screenWidth = Dimensions.get('window').width;
   // Уменьшаем ширину: панель занимает 50% ширины экрана
   const tabBarWidth = screenWidth * 0.5;
   const marginHorizontal = (screenWidth - tabBarWidth) / 2;
+
+  // Добавляем безопасный отступ снизу для Android
+  const tabBarBottomMargin = insets.bottom > 0 ? insets.bottom + verticalScale(8) : verticalScale(20);
 
   return (
     <Tabs
@@ -84,17 +90,17 @@ export default function TabsLayout() {
           position: 'absolute',
           backgroundColor: isDark ? COLORS.background.dark : COLORS.background.light,
           borderTopWidth: 0,
-          height: 60,
-          paddingBottom: Platform.OS === 'ios' ? 10 : 8,
-          paddingTop: Platform.OS === 'ios' ? 10 : 8,
-          paddingHorizontal: 20,
+          height: verticalScale(56),
+          paddingBottom: verticalScale(8),
+          paddingTop: verticalScale(8),
+          paddingHorizontal: scale(20),
           marginHorizontal: marginHorizontal,
-          marginBottom: Platform.OS === 'ios' ? 30 : 20,
-          borderRadius: 30,
+          marginBottom: tabBarBottomMargin,
+          borderRadius: scale(30),
           shadowColor: COLORS.shadow.black,
-          shadowOffset: { width: 0, height: 10 },
+          shadowOffset: { width: 0, height: verticalScale(10) },
           shadowOpacity: 0.15,
-          shadowRadius: 20,
+          shadowRadius: scale(20),
           elevation: 10,
           borderWidth: 1,
           borderColor: isDark ? COLORS.purple.medium : COLORS.purple.light,
@@ -123,7 +129,7 @@ export default function TabsLayout() {
         options={{
           title: 'Чат',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="chatbubble-ellipses" size={28} color={color} />
+            <Ionicons name="chatbubble-ellipses" size={moderateScale(26)} color={color} />
           ),
         }}
       />
@@ -132,7 +138,7 @@ export default function TabsLayout() {
         options={{
           title: 'Избранное',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="heart" size={28} color={color} />
+            <Ionicons name="heart" size={moderateScale(26)} color={color} />
           ),
         }}
       />
@@ -141,7 +147,7 @@ export default function TabsLayout() {
         options={{
           title: 'Профиль',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="person" size={28} color={color} />
+            <Ionicons name="person" size={moderateScale(26)} color={color} />
           ),
         }}
       />

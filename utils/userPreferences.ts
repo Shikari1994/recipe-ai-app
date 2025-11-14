@@ -3,47 +3,39 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 const USER_PREFERENCES_KEY = '@user_preferences';
 
 export type DietaryRestriction =
-  | 'low-calorie'
   | 'vegetarian'
   | 'vegan'
-  | 'diabetic'
-  | 'low-cholesterol';
+  | 'low-calorie';
 
 export type Allergen =
   | 'milk'
   | 'eggs'
-  | 'fish'
-  | 'shellfish'
   | 'tree-nuts'
   | 'peanuts'
-  | 'wheat'
-  | 'soy'
   | 'gluten'
-  | 'lactose';
+  | 'fish';
 
 export type UserPreferences = {
   allergens: Allergen[];
   dietaryRestrictions: DietaryRestriction[];
   servings: number;
+  wallpaperId?: string;
 };
 
 const DEFAULT_PREFERENCES: UserPreferences = {
   allergens: [],
   dietaryRestrictions: [],
   servings: 2,
+  wallpaperId: 'dark-image',
 };
 
 export const ALLERGEN_LABELS: Record<Allergen, string> = {
   'milk': 'Молоко',
   'eggs': 'Яйца',
-  'fish': 'Рыба',
-  'shellfish': 'Морепродукты',
   'tree-nuts': 'Орехи',
   'peanuts': 'Арахис',
-  'wheat': 'Пшеница',
-  'soy': 'Соя',
   'gluten': 'Глютен',
-  'lactose': 'Лактоза',
+  'fish': 'Рыба',
 };
 
 /**
@@ -152,6 +144,20 @@ export async function setServings(servings: number): Promise<boolean> {
 }
 
 /**
+ * Установить обои
+ */
+export async function setWallpaper(wallpaperId: string): Promise<boolean> {
+  try {
+    const prefs = await getUserPreferences();
+    prefs.wallpaperId = wallpaperId;
+    return await saveUserPreferences(prefs);
+  } catch (error) {
+    console.error('Error setting wallpaper:', error);
+    return false;
+  }
+}
+
+/**
  * Получить текстовое описание аллергенов для промпта
  */
 export function getAllergensText(allergens: Allergen[]): string {
@@ -160,14 +166,10 @@ export function getAllergensText(allergens: Allergen[]): string {
   const allergenNames: Record<Allergen, string> = {
     'milk': 'молоко',
     'eggs': 'яйца',
-    'fish': 'рыба',
-    'shellfish': 'морепродукты',
     'tree-nuts': 'орехи',
     'peanuts': 'арахис',
-    'wheat': 'пшеница',
-    'soy': 'соя',
     'gluten': 'глютен',
-    'lactose': 'лактоза',
+    'fish': 'рыба',
   };
 
   const names = allergens.map(a => allergenNames[a]);
@@ -181,11 +183,9 @@ export function getDietaryRestrictionsText(restrictions: DietaryRestriction[]): 
   if (restrictions.length === 0) return '';
 
   const restrictionNames: Record<DietaryRestriction, string> = {
-    'low-calorie': 'низкокалорийные рецепты (менее 400 ккал на порцию)',
     'vegetarian': 'вегетарианские рецепты (без мяса и рыбы)',
     'vegan': 'веганские рецепты (без продуктов животного происхождения)',
-    'diabetic': 'рецепты для диабетиков (низкий гликемический индекс, без сахара)',
-    'low-cholesterol': 'рецепты с низким содержанием холестерина',
+    'low-calorie': 'низкокалорийные рецепты (менее 400 ккал на порцию)',
   };
 
   const descriptions = restrictions.map(r => restrictionNames[r]);

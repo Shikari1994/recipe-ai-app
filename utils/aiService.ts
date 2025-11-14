@@ -3,7 +3,7 @@ import { API_CONFIG, SYSTEM_PROMPT, IMAGE_SYSTEM_PROMPT } from '@/constants/apiC
 import { convertImageToBase64, getImageMimeType } from './imageUtils';
 import { getUserPreferences, getPreferencesPromptText } from './userPreferences';
 import {
-  checkAllergenConflicts,
+  checkAllConflicts,
   parseAIResponse,
   type AIRecipe,
   type AIResponse,
@@ -51,8 +51,8 @@ export async function getRecipesFromAI(
     // Загружаем настройки пользователя
     const userPreferences = await getUserPreferences();
 
-    // Проверяем конфликты между вводом пользователя и аллергенами
-    const conflictWarning = checkAllergenConflicts(ingredients, userPreferences.allergens);
+    // Проверяем конфликты между вводом пользователя и настройками (аллергены + диета)
+    const conflictWarning = checkAllConflicts(ingredients, userPreferences);
     if (conflictWarning) {
       return {
         success: false,

@@ -8,21 +8,24 @@ import {
   Switch,
   Alert,
   Animated,
+  Linking,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { useTheme } from '@/utils/ThemeContext';
 import { BlurView } from 'expo-blur';
 import { PLATFORM } from '@/constants/ui';
-import { MultiSelectModal, ServingsSelector } from '@/components/ui';
+import { MultiSelectModal, ServingsSelector, WallpaperSelector } from '@/components/ui';
 import { SettingItem, ProfileHeader, InfoModal } from '@/components/profile';
 import {
   getUserPreferences,
   saveUserPreferences,
+  setWallpaper,
   UserPreferences,
   Allergen,
   DietaryRestriction,
 } from '@/utils/userPreferences';
+import { WALLPAPERS } from '@/constants/wallpapers';
 
 export default function ProfileScreen() {
   const { isDark, toggleTheme, colors } = useTheme();
@@ -38,9 +41,11 @@ export default function ProfileScreen() {
     allergens: [],
     dietaryRestrictions: [],
     servings: 2,
+    wallpaperId: 'dark-image',
   });
   const [allergensModalVisible, setAllergensModalVisible] = useState(false);
   const [dietModalVisible, setDietModalVisible] = useState(false);
+  const [wallpaperModalVisible, setWallpaperModalVisible] = useState(false);
 
   // Загрузка настроек при монтировании
   useFocusEffect(
@@ -76,6 +81,18 @@ export default function ProfileScreen() {
     if (success) {
       setPreferences(newPrefs);
     }
+  };
+
+  const handleWallpaperChange = async (wallpaperId: string) => {
+    const success = await setWallpaper(wallpaperId);
+    if (success) {
+      setPreferences({ ...preferences, wallpaperId });
+    }
+  };
+
+  const getWallpaperName = () => {
+    const wallpaper = WALLPAPERS.find(w => w.id === preferences.wallpaperId);
+    return wallpaper ? wallpaper.name : 'Не выбрано';
   };
 
   const showInfoModal = (title: string, content: string) => {
@@ -191,6 +208,16 @@ export default function ProfileScreen() {
           textColor={colors.text}
           textSecondaryColor={colors.textSecondary}
         />
+
+        <SettingItem
+          icon="image"
+          title="Обои"
+          value={getWallpaperName()}
+          onPress={() => setWallpaperModalVisible(true)}
+          borderColor={colors.border}
+          textColor={colors.text}
+          textSecondaryColor={colors.textSecondary}
+        />
       </View>
 
       {/* Настройки рецептов */}
@@ -256,7 +283,16 @@ export default function ProfileScreen() {
         <SettingItem
           icon="document-text"
           title="Условия использования"
-          onPress={() => showInfoModal('Условия использования', 'Не принимать всё близко к сердцу.')}
+          onPress={() => Linking.openURL('https://ЗАМЕНИТЕ_НА_ВАШ_URL/terms.html')}
+          borderColor={colors.border}
+          textColor={colors.text}
+          textSecondaryColor={colors.textSecondary}
+        />
+
+        <SettingItem
+          icon="shield-checkmark"
+          title="Политика конфиденциальности"
+          onPress={() => Linking.openURL('https://ЗАМЕНИТЕ_НА_ВАШ_URL/privacy.html')}
           borderColor={colors.border}
           textColor={colors.text}
           textSecondaryColor={colors.textSecondary}
@@ -265,7 +301,7 @@ export default function ProfileScreen() {
         <SettingItem
           icon="information-circle"
           title="О приложении"
-          onPress={() => showInfoModal('О приложении', 'Версия 0.5.1')}
+          onPress={() => showInfoModal('О приложении', 'Версия 1.0.0\n\nRecipe AI - ваш умный помощник в создании рецептов.\n\nРазработано с ❤️')}
           borderColor={colors.border}
           textColor={colors.text}
           textSecondaryColor={colors.textSecondary}
@@ -316,14 +352,10 @@ export default function ProfileScreen() {
         options={[
           { value: 'milk' as Allergen, label: 'Молоко', icon: 'nutrition' },
           { value: 'eggs' as Allergen, label: 'Яйца', icon: 'egg' },
-          { value: 'fish' as Allergen, label: 'Рыба', icon: 'fish' },
-          { value: 'shellfish' as Allergen, label: 'Морепродукты', icon: 'fish' },
           { value: 'tree-nuts' as Allergen, label: 'Орехи', icon: 'leaf' },
           { value: 'peanuts' as Allergen, label: 'Арахис', icon: 'leaf' },
-          { value: 'wheat' as Allergen, label: 'Пшеница', icon: 'leaf' },
-          { value: 'soy' as Allergen, label: 'Соя', icon: 'leaf' },
           { value: 'gluten' as Allergen, label: 'Глютен', icon: 'warning' },
-          { value: 'lactose' as Allergen, label: 'Лактоза', icon: 'warning' },
+          { value: 'fish' as Allergen, label: 'Рыба', icon: 'fish' },
         ]}
         selectedValues={preferences.allergens}
         onClose={() => setAllergensModalVisible(false)}
@@ -336,15 +368,22 @@ export default function ProfileScreen() {
         visible={dietModalVisible}
         title="Диетические ограничения"
         options={[
-          { value: 'low-calorie' as DietaryRestriction, label: 'Низкокалорийные', icon: 'fitness' },
           { value: 'vegetarian' as DietaryRestriction, label: 'Вегетарианские', icon: 'leaf' },
           { value: 'vegan' as DietaryRestriction, label: 'Веганские', icon: 'leaf' },
-          { value: 'diabetic' as DietaryRestriction, label: 'Для диабетиков', icon: 'medical' },
-          { value: 'low-cholesterol' as DietaryRestriction, label: 'Низкий холестерин', icon: 'heart' },
+          { value: 'low-calorie' as DietaryRestriction, label: 'Низкокалорийные', icon: 'fitness' },
         ]}
         selectedValues={preferences.dietaryRestrictions}
         onClose={() => setDietModalVisible(false)}
         onSave={handleSaveDietaryRestrictions}
+        isDark={isDark}
+      />
+
+      {/* Модальное окно выбора обоев */}
+      <WallpaperSelector
+        visible={wallpaperModalVisible}
+        selectedWallpaperId={preferences.wallpaperId || 'dark-image'}
+        onClose={() => setWallpaperModalVisible(false)}
+        onSelect={handleWallpaperChange}
         isDark={isDark}
       />
     </View>
