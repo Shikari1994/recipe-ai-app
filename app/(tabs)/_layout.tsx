@@ -1,6 +1,7 @@
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/utils/ThemeContext';
+import { useLanguage } from '@/utils/LanguageContext';
 import { Platform, Dimensions, TouchableOpacity, Animated, StyleSheet } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { COLORS } from '@/constants/colors';
@@ -71,6 +72,7 @@ function AnimatedTabBarButton({ children, onPress, accessibilityState }: Animate
 
 export default function TabsLayout() {
   const { colors, isDark } = useTheme();
+  const { t } = useLanguage();
   const insets = useSafeAreaInsets();
   const screenWidth = Dimensions.get('window').width;
   // Уменьшаем ширину: панель занимает 50% ширины экрана
@@ -127,7 +129,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="chat"
         options={{
-          title: 'Чат',
+          title: t.tabs.chat,
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="chatbubble-ellipses" size={moderateScale(26)} color={color} />
           ),
@@ -136,7 +138,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="favorites"
         options={{
-          title: 'Избранное',
+          title: t.tabs.favorites,
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="heart" size={moderateScale(26)} color={color} />
           ),
@@ -145,7 +147,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="profile"
         options={{
-          title: 'Профиль',
+          title: t.tabs.profile,
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="person" size={moderateScale(26)} color={color} />
           ),

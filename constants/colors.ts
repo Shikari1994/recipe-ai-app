@@ -46,10 +46,10 @@ export const COLORS = {
  * Получить цвета в зависимости от темы
  */
 export const getThemeColors = (isDark: boolean) => ({
-  text: isDark ? '#fff' : '#333',
-  textSecondary: isDark ? 'rgba(255, 255, 255, 0.6)' : '#666',
-  textTertiary: isDark ? 'rgba(255, 255, 255, 0.7)' : '#666',
-  textQuaternary: isDark ? 'rgba(255, 255, 255, 0.5)' : '#999',
+  text: isDark ? '#fff' : '#1a1a1a',
+  textSecondary: isDark ? 'rgba(255, 255, 255, 0.85)' : '#333',
+  textTertiary: isDark ? 'rgba(255, 255, 255, 0.8)' : '#444',
+  textQuaternary: isDark ? 'rgba(255, 255, 255, 0.7)' : '#666',
   textMuted: isDark ? 'rgba(255, 255, 255, 0.4)' : '#999',
   welcomeText: isDark ? 'rgba(255, 255, 255, 0.8)' : '#666',
   inputBg: isDark ? 'rgba(30, 30, 30, 0.6)' : 'rgba(255, 255, 255, 0.6)',

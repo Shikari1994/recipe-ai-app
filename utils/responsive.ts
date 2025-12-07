@@ -6,20 +6,43 @@ const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const BASE_WIDTH = 375;
 const BASE_HEIGHT = 812;
 
+// Минимальная ширина, ниже которой шрифты будут уменьшаться
+const MIN_WIDTH = 320;
+// Коэффициент уменьшения для маленьких экранов
+const SMALL_SCREEN_FACTOR = 0.85;
+
 /**
  * Функция для горизонтального масштабирования
  * Используется для ширины, горизонтальных отступов, размеров элементов
+ * На экранах меньше базового применяется ограничение для предотвращения чрезмерного увеличения
  */
 export const scale = (size: number): number => {
-  return (SCREEN_WIDTH / BASE_WIDTH) * size;
+  const scaleFactor = SCREEN_WIDTH / BASE_WIDTH;
+
+  // Для маленьких экранов ограничиваем масштабирование
+  if (SCREEN_WIDTH < BASE_WIDTH) {
+    const limitedFactor = Math.max(scaleFactor, SMALL_SCREEN_FACTOR);
+    return limitedFactor * size;
+  }
+
+  return scaleFactor * size;
 };
 
 /**
  * Функция для вертикального масштабирования
  * Используется для высоты, вертикальных отступов
+ * На экранах меньше базового применяется ограничение
  */
 export const verticalScale = (size: number): number => {
-  return (SCREEN_HEIGHT / BASE_HEIGHT) * size;
+  const scaleFactor = SCREEN_HEIGHT / BASE_HEIGHT;
+
+  // Для маленьких экранов ограничиваем масштабирование
+  if (SCREEN_WIDTH < BASE_WIDTH) {
+    const limitedFactor = Math.max(scaleFactor, SMALL_SCREEN_FACTOR);
+    return limitedFactor * size;
+  }
+
+  return scaleFactor * size;
 };
 
 /**
@@ -34,9 +57,22 @@ export const moderateScale = (size: number, factor: number = 0.5): number => {
 /**
  * Функция для масштабирования шрифтов с учетом pixel ratio
  * Обеспечивает более точное отображение текста на разных устройствах
+ * На маленьких экранах шрифты дополнительно уменьшаются
  */
 export const fontScale = (size: number): number => {
-  const newSize = moderateScale(size, 0.4);
+  // Для маленьких экранов используем более агрессивное уменьшение
+  const factor = SCREEN_WIDTH < BASE_WIDTH ? 0.3 : 0.4;
+  let newSize = moderateScale(size, factor);
+
+  // Дополнительное уменьшение для очень маленьких экранов
+  if (SCREEN_WIDTH < MIN_WIDTH) {
+    newSize = newSize * 0.9;
+  } else if (SCREEN_WIDTH < BASE_WIDTH) {
+    // Плавное уменьшение для экранов меньше базового
+    const reduction = 1 - ((BASE_WIDTH - SCREEN_WIDTH) / (BASE_WIDTH - MIN_WIDTH)) * 0.1;
+    newSize = newSize * reduction;
+  }
+
   if (Platform.OS === 'ios') {
     return Math.round(PixelRatio.roundToNearestPixel(newSize));
   } else {
@@ -50,9 +86,10 @@ export const fontScale = (size: number): number => {
 export const getScreenDimensions = () => ({
   width: SCREEN_WIDTH,
   height: SCREEN_HEIGHT,
-  isSmallDevice: SCREEN_WIDTH < 375,
-  isMediumDevice: SCREEN_WIDTH >= 375 && SCREEN_WIDTH < 414,
-  isLargeDevice: SCREEN_WIDTH >= 414,
+  isVerySmallDevice: SCREEN_WIDTH < MIN_WIDTH, // < 320px
+  isSmallDevice: SCREEN_WIDTH >= MIN_WIDTH && SCREEN_WIDTH < BASE_WIDTH, // 320-374px
+  isMediumDevice: SCREEN_WIDTH >= BASE_WIDTH && SCREEN_WIDTH < 414, // 375-413px
+  isLargeDevice: SCREEN_WIDTH >= 414, // >= 414px
 });
 
 /**

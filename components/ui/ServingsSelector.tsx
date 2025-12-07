@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '@/constants/colors';
 import { SPACING } from '@/constants/ui';
+import { fontScale, moderateScale } from '@/utils/responsive';
 
 type ServingsSelectorProps = {
   servings: number;
@@ -36,7 +37,7 @@ export function ServingsSelector({ servings, onServingsChange, isDark }: Serving
           >
             <Ionicons
               name="people"
-              size={20}
+              size={moderateScale(20)}
               color={isSelected ? '#fff' : COLORS.primary}
             />
             <Text
@@ -74,7 +75,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   optionText: {
-    fontSize: 16,
+    fontSize: fontScale(16),
     fontWeight: '600',
   },
 });

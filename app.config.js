@@ -2,16 +2,26 @@
 
 module.exports = {
   expo: {
-    name: "Myapp",
-    slug: "Myapp",
+    name: "AI Recipe Assistant",
+    slug: "ai-recipe-assistant",
     version: "1.0.0",
     orientation: "portrait",
-    // icon: "./assets/images/icon.png",
+    icon: "./assets/images/icon.png",
     scheme: "myapp",
     userInterfaceStyle: "automatic",
     newArchEnabled: true,
+    backgroundColor: "#8A2BE2",
+    splash: {
+      image: "./assets/images/icon.png",
+      resizeMode: "contain",
+      backgroundColor: "#8A2BE2"
+    },
     ios: {
-      supportsTablet: true
+      supportsTablet: true,
+      infoPlist: {
+        NSSpeechRecognitionUsageDescription: "Это приложение использует распознавание речи для голосового ввода рецептов.",
+        NSMicrophoneUsageDescription: "Это приложение использует микрофон для голосового ввода рецептов."
+      }
     },
     android: {
       package: "com.myapp.recipeai",
@@ -19,19 +29,31 @@ module.exports = {
         "android.permission.CAMERA",
         "android.permission.READ_EXTERNAL_STORAGE",
         "android.permission.WRITE_EXTERNAL_STORAGE",
-        "android.permission.READ_MEDIA_IMAGES"
+        "android.permission.READ_MEDIA_IMAGES",
+        "android.permission.RECORD_AUDIO"
       ],
-      softwareKeyboardLayoutMode: "pan"
+      softwareKeyboardLayoutMode: "pan",
+      adaptiveIcon: {
+        foregroundImage: "./assets/images/adaptive-icon-foreground.png",
+        backgroundColor: "#8A2BE2"
+      }
     },
     plugins: [
-      "expo-router"
+      "expo-router",
+      "expo-font",
+      [
+        "expo-speech-recognition",
+        {
+          microphonePermission: "Разрешите использование микрофона для голосового ввода рецептов.",
+          speechRecognitionPermission: "Разрешите распознавание речи для голосового ввода рецептов."
+        }
+      ]
     ],
     experiments: {
-      typedRoutes: true,
-      reactCompiler: true
+      typedRoutes: true
     },
     extra: {
-      openRouterApiKey: process.env.OPENROUTER_API_KEY || '',
+      workerUrl: 'https://recipe-ai-proxy.recipeai.workers.dev',
       eas: {
         projectId: "e578b835-08ae-4134-9a08-5a8830f77045"
       }

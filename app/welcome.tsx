@@ -13,10 +13,12 @@ import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { COLORS } from '@/constants/colors';
 import { scale, verticalScale, fontScale, moderateScale, BORDER_RADIUS } from '@/utils/responsive';
+import { useLanguage } from '@/utils/LanguageContext';
 
 export default function WelcomeScreen() {
   const [accepted, setAccepted] = useState(false);
   const router = useRouter();
+  const { t } = useLanguage();
 
   const handleContinue = async () => {
     if (!accepted) return;
@@ -52,7 +54,7 @@ export default function WelcomeScreen() {
           {/* Иконка приложения */}
           <View style={styles.iconContainer}>
             <LinearGradient
-              colors={[COLORS.primary, COLORS.purple.dark]}
+              colors={COLORS.gradient.icon}
               style={styles.iconGradient}
             >
               <Ionicons name="restaurant" size={moderateScale(60)} color="#fff" />
@@ -60,43 +62,43 @@ export default function WelcomeScreen() {
           </View>
 
           {/* Приветствие */}
-          <Text style={styles.title}>Добро пожаловать в Recipe AI!</Text>
+          <Text style={styles.title}>{t.welcomeScreen.title}</Text>
           <Text style={styles.subtitle}>
-            Ваш умный помощник в создании рецептов на основе искусственного интеллекта
+            {t.welcomeScreen.subtitle}
           </Text>
 
           {/* Предупреждение */}
           <View style={styles.warningBox}>
             <View style={styles.warningHeader}>
               <Ionicons name="warning" size={moderateScale(24)} color="#ffc107" />
-              <Text style={styles.warningTitle}>Важная информация</Text>
+              <Text style={styles.warningTitle}>{t.welcomeScreen.warningTitle}</Text>
             </View>
             <Text style={styles.warningText}>
-              Рецепты генерируются искусственным интеллектом и могут содержать ошибки.
+              {t.welcomeScreen.warningAI}
             </Text>
             <Text style={styles.warningText}>
-              При наличии аллергий ВСЕГДА проверяйте состав продуктов самостоятельно и консультируйтесь с врачом.
+              {t.welcomeScreen.warningAllergy}
             </Text>
             <Text style={styles.warningTextBold}>
-              Мы не несём ответственности за последствия использования рецептов.
+              {t.welcomeScreen.warningDisclaimer}
             </Text>
           </View>
 
           {/* Ссылки на документы */}
           <View style={styles.linksContainer}>
             <Text style={styles.linksText}>
-              Продолжая, вы соглашаетесь с нашими:
+              {t.welcomeScreen.agreementText}
             </Text>
 
             <TouchableOpacity style={styles.linkButton} onPress={openTerms}>
               <Ionicons name="document-text" size={moderateScale(20)} color={COLORS.primary} />
-              <Text style={styles.linkText}>Условиями использования</Text>
+              <Text style={styles.linkText}>{t.welcomeScreen.termsOfService}</Text>
               <Ionicons name="open-outline" size={moderateScale(16)} color={COLORS.primary} />
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.linkButton} onPress={openPrivacy}>
               <Ionicons name="shield-checkmark" size={moderateScale(20)} color={COLORS.primary} />
-              <Text style={styles.linkText}>Политикой конфиденциальности</Text>
+              <Text style={styles.linkText}>{t.welcomeScreen.privacyPolicy}</Text>
               <Ionicons name="open-outline" size={moderateScale(16)} color={COLORS.primary} />
             </TouchableOpacity>
           </View>
@@ -113,7 +115,7 @@ export default function WelcomeScreen() {
               )}
             </View>
             <Text style={styles.checkboxText}>
-              Я прочитал(а) и соглашаюсь с условиями использования и политикой конфиденциальности
+              {t.welcomeScreen.consentText}
             </Text>
           </TouchableOpacity>
 
@@ -125,10 +127,10 @@ export default function WelcomeScreen() {
             activeOpacity={0.8}
           >
             <LinearGradient
-              colors={accepted ? [COLORS.primary, COLORS.purple.dark] : ['#ccc', '#999']}
+              colors={accepted ? COLORS.gradient.icon : ['#ccc', '#999']}
               style={styles.buttonGradient}
             >
-              <Text style={styles.continueButtonText}>Продолжить</Text>
+              <Text style={styles.continueButtonText}>{t.welcomeScreen.continue}</Text>
               <Ionicons name="arrow-forward" size={moderateScale(24)} color="#fff" />
             </LinearGradient>
           </TouchableOpacity>

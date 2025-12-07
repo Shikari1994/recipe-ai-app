@@ -1,10 +1,132 @@
-import { Allergen, ALLERGEN_LABELS, DietaryRestriction, UserPreferences } from '../userPreferences';
+/**
+ * Вспомогательные функции для работы с AI
+ * Объединяет парсинг ответов AI и валидацию аллергенов/диет
+ */
+
+import { AIRecipe, Allergen, ALLERGEN_LABELS, DietaryRestriction, UserPreferences } from '@/types';
+
+// ============================================
+// AI Response Parser
+// ============================================
+
+/**
+ * Парсит ответ от AI и извлекает структурированные рецепты
+ * @param text - текст ответа от AI
+ * @returns объект с массивом рецептов (без приветствия)
+ */
+export function parseAIResponse(text: string): {
+  greeting: string;
+  recipes: AIRecipe[];
+} {
+  const recipes: AIRecipe[] = [];
+
+  const lines = text.split('\n');
+  let currentRecipe: Partial<AIRecipe> | null = null;
+  let collectingSteps = false;
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+
+    // Пропускаем разделители
+    if (line === '---' || line === '') {
+      if (currentRecipe && currentRecipe.title && collectingSteps) {
+        recipes.push({
+          id: `ai-${Date.now()}-${recipes.length}`,
+          title: currentRecipe.title,
+          time: currentRecipe.time,
+          calories: currentRecipe.calories,
+          steps: currentRecipe.steps || [],
+        });
+        currentRecipe = null;
+        collectingSteps = false;
+      }
+      continue;
+    }
+
+    // Ищем название рецепта
+    if (
+      line.match(/^###\s+/) ||
+      (line.match(/^\*\*.*\*\*$/) && !line.match(/время|шаги|калории|time|steps|calories|cooking/i))
+    ) {
+      if (currentRecipe && currentRecipe.title) {
+        recipes.push({
+          id: `ai-${Date.now()}-${recipes.length}`,
+          title: currentRecipe.title,
+          time: currentRecipe.time,
+          calories: currentRecipe.calories,
+          steps: currentRecipe.steps || [],
+        });
+      }
+
+      currentRecipe = {
+        title: line.replace(/^###\s+/, '').replace(/[\*]/g, '').trim(),
+        steps: [],
+      };
+      collectingSteps = false;
+    }
+    // Ищем время приготовления (русский и английский)
+    else if (line.match(/\*\*Время приготовления|\*\*Cooking time/i) && currentRecipe) {
+      const timeMatch = line.match(/:\*\*\s*(.+)/);
+      if (timeMatch) {
+        currentRecipe.time = timeMatch[1].trim();
+      } else {
+        const simpleMatch = line.match(/:\s*(.+)/);
+        if (simpleMatch) {
+          currentRecipe.time = simpleMatch[1].replace(/\*/g, '').trim();
+        }
+      }
+    }
+    // Ищем калории (русский и английский)
+    else if (line.match(/\*\*Калории|\*\*Calories/i) && currentRecipe) {
+      const caloriesMatch = line.match(/:\*\*\s*(.+)/);
+      if (caloriesMatch) {
+        currentRecipe.calories = caloriesMatch[1].trim();
+      } else {
+        const simpleMatch = line.match(/:\s*(.+)/);
+        if (simpleMatch) {
+          currentRecipe.calories = simpleMatch[1].replace(/\*/g, '').trim();
+        }
+      }
+    }
+    // Ищем начало шагов (русский и английский)
+    else if (line.match(/\*\*Шаги|\*\*Steps/i) && currentRecipe) {
+      collectingSteps = true;
+      currentRecipe.steps = [];
+    }
+    // Собираем шаги
+    else if (collectingSteps && currentRecipe && line.match(/^\d+[\.\)]/)) {
+      const step = line.replace(/^\d+[\.\)]\s*/, '').trim();
+      if (step.length > 0 && !step.match(/^[\-\*]+$/)) {
+        currentRecipe.steps!.push(step);
+      }
+    }
+  }
+
+  // Сохраняем последний рецепт
+  if (currentRecipe && currentRecipe.title) {
+    recipes.push({
+      id: `ai-${Date.now()}-${recipes.length}`,
+      title: currentRecipe.title,
+      time: currentRecipe.time,
+      calories: currentRecipe.calories,
+      steps: currentRecipe.steps || [],
+    });
+  }
+
+  const recipesWithIds = recipes.map((recipe, index) => ({
+    ...recipe,
+    id: recipe.id || `ai-${Date.now()}-${index}`,
+  }));
+
+  return { greeting: '', recipes: recipesWithIds };
+}
+
+// ============================================
+// Allergen & Diet Validator
+// ============================================
 
 /**
  * Проверяет конфликты между вводом пользователя и выбранными аллергенами
- * @param userInput - ввод пользователя
- * @param allergens - список аллергенов
- * @returns сообщение об ошибке или null
  */
 export function checkAllergenConflicts(
   userInput: string,
@@ -17,12 +139,10 @@ export function checkAllergenConflicts(
   for (const allergen of allergens) {
     const allergenLabel = ALLERGEN_LABELS[allergen].toLowerCase();
 
-    // Проверяем точное совпадение или вхождение аллергена в запрос
     if (lowerInput === allergenLabel || lowerInput.includes(allergenLabel)) {
       return `⚠️ Внимание! Вы указали "${ALLERGEN_LABELS[allergen]}" в аллергиях, но пытаетесь найти рецепты с этим продуктом. Это противоречит вашим настройкам. Пожалуйста, введите другие ингредиенты или измените настройки аллергий в профиле.`;
     }
 
-    // Дополнительная проверка для распространённых вариантов написания
     const variants: Record<string, string[]> = {
       eggs: ['яйцо', 'яйца', 'яиц', 'яйцом', 'яйцами', 'egg'],
       milk: ['молоко', 'молоком', 'молока', 'молочн', 'сливк', 'сметан', 'творог', 'сыр', 'кефир', 'йогурт', 'milk', 'cream', 'cheese'],
@@ -45,9 +165,6 @@ export function checkAllergenConflicts(
 
 /**
  * Проверяет конфликты между вводом пользователя и диетическими ограничениями
- * @param userInput - ввод пользователя
- * @param restrictions - список диетических ограничений
- * @returns сообщение об ошибке или null
  */
 export function checkDietaryConflicts(
   userInput: string,
@@ -74,7 +191,7 @@ export function checkDietaryConflicts(
     }
   }
 
-  // Проверка для веганства (дополнительно к вегетарианству)
+  // Проверка для веганства
   if (restrictions.includes('vegan')) {
     const animalProductKeywords = [
       'молоко', 'молочн', 'сливк', 'сметан', 'творог', 'сыр', 'кефир', 'йогурт',
@@ -95,19 +212,14 @@ export function checkDietaryConflicts(
 
 /**
  * Проверяет все конфликты (аллергены + диетические ограничения)
- * @param userInput - ввод пользователя
- * @param preferences - настройки пользователя
- * @returns сообщение об ошибке или null
  */
 export function checkAllConflicts(
   userInput: string,
   preferences: UserPreferences
 ): string | null {
-  // Сначала проверяем аллергены
   const allergenConflict = checkAllergenConflicts(userInput, preferences.allergens);
   if (allergenConflict) return allergenConflict;
 
-  // Затем проверяем диетические ограничения
   const dietaryConflict = checkDietaryConflicts(userInput, preferences.dietaryRestrictions);
   if (dietaryConflict) return dietaryConflict;
 

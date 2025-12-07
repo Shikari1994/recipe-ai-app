@@ -2,15 +2,8 @@ import axios from 'axios';
 import { API_CONFIG, SYSTEM_PROMPT, IMAGE_SYSTEM_PROMPT } from '@/constants/apiConfig';
 import { convertImageToBase64, getImageMimeType } from './imageUtils';
 import { getUserPreferences, getPreferencesPromptText } from './userPreferences';
-import {
-  checkAllConflicts,
-  parseAIResponse,
-  type AIRecipe,
-  type AIResponse,
-} from './services';
-
-// Реэкспорт типов для обратной совместимости
-export type { AIRecipe, AIResponse };
+import { checkAllConflicts, parseAIResponse } from './aiHelpers';
+import type { AIRecipe, AIResponse } from '@/types';
 
 /**
  * Типы для контента сообщения (text или multimodal с изображением)
@@ -30,14 +23,16 @@ type ImageContent = {
 type MessageContent = string | Array<TextContent | ImageContent>;
 
 /**
- * Отправляет запрос к Gemini через OpenRouter для получения рецептов
+ * Отправляет запрос к AI через Cloudflare Worker
  * @param ingredients - строка с перечислением продуктов (может быть пустой, если есть изображение)
  * @param imageUri - опциональный URI изображения для анализа
+ * @param userLanguage - язык пользователя для ответа AI (ru или en)
  * @returns объект с рецептами или ошибкой
  */
 export async function getRecipesFromAI(
   ingredients: string,
-  imageUri?: string
+  imageUri?: string,
+  userLanguage: string = 'ru'
 ): Promise<AIResponse> {
   try {
     // Проверка: должен быть либо текст, либо изображение
@@ -60,7 +55,7 @@ export async function getRecipesFromAI(
       };
     }
 
-    const preferencesText = getPreferencesPromptText(userPreferences);
+    const preferencesText = getPreferencesPromptText(userPreferences, userLanguage);
 
     // Подготавливаем контент сообщения
     let messageContent: MessageContent;
@@ -70,7 +65,7 @@ export async function getRecipesFromAI(
       try {
         const base64Image = await convertImageToBase64(imageUri);
         const mimeType = getImageMimeType(imageUri);
-        const prompt = IMAGE_SYSTEM_PROMPT(ingredients.trim() || undefined, preferencesText);
+        const prompt = IMAGE_SYSTEM_PROMPT(ingredients.trim() || undefined, preferencesText, userLanguage);
 
         messageContent = [
           {
@@ -93,7 +88,7 @@ export async function getRecipesFromAI(
       }
     } else {
       // Если только текст, используем обычный формат
-      messageContent = SYSTEM_PROMPT(ingredients, preferencesText);
+      messageContent = SYSTEM_PROMPT(ingredients, preferencesText, userLanguage);
     }
 
     // Выбираем модель в зависимости от типа запроса
@@ -102,8 +97,9 @@ export async function getRecipesFromAI(
     // Увеличиваем лимит токенов для vision запросов
     const maxTokens = imageUri ? 1500 : API_CONFIG.MAX_TOKENS;
 
+    // Отправляем запрос к Cloudflare Worker (вместо прямого запроса к OpenRouter)
     const response = await axios.post(
-      `${API_CONFIG.OPENROUTER_BASE_URL}/chat/completions`,
+      API_CONFIG.WORKER_URL, // URL вашего Cloudflare Worker
       {
         model: modelToUse,
         messages: [
@@ -117,10 +113,7 @@ export async function getRecipesFromAI(
       },
       {
         headers: {
-          'Authorization': `Bearer ${API_CONFIG.OPENROUTER_API_KEY}`,
           'Content-Type': 'application/json',
-          'HTTP-Referer': 'https://myapp.com',
-          'X-Title': 'Recipe Assistant',
         },
         timeout: 45000, // 45 секунд для vision запросов
       }
@@ -173,13 +166,13 @@ export async function getRecipesFromAI(
         if (error.response.status === 402) {
           return {
             success: false,
-            error: 'Закончились средства на API ключе. Проверьте баланс на OpenRouter.',
+            error: 'Сервис временно недоступен. Попробуйте позже.',
           };
         }
 
         return {
           success: false,
-          error: `Ошибка API: ${error.response.status} - ${error.response.data?.error?.message || JSON.stringify(error.response.data)}`,
+          error: `Ошибка сервиса: ${error.response.status}`,
         };
       } else if (error.request) {
         // Запрос был отправлен, но ответа не получено

@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, ViewStyle, StyleProp } from 'react-native';
+import { View, StyleSheet, ViewStyle, StyleProp, Platform } from 'react-native';
 import { BlurView, BlurTint } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 
@@ -32,44 +32,71 @@ export const BlurCard = React.memo<BlurCardProps>(({
   contentStyle,
   borderRadius = 24,
   borderColor,
-  borderWidth = 1,
+  borderWidth = 0,
   withShadow = true,
   shadowColor = 'rgba(138, 43, 226, 0.3)',
 }) => {
   const blurTint = tint || (isDark ? 'dark' : 'light');
 
   return (
-    <View
-      style={[
-        styles.card,
-        {
-          borderRadius,
-          borderWidth,
-          borderColor: borderColor || 'rgba(138, 43, 226, 0.2)',
-        },
-        withShadow && {
-          shadowColor,
-          shadowOffset: { width: 0, height: 8 },
-          shadowOpacity: 0.3,
-          shadowRadius: 20,
-          elevation: 8,
-        },
-        style,
-      ]}
-    >
-      <BlurView
-        intensity={intensity}
-        tint={blurTint}
-        style={styles.blur}
-      />
-      {gradientColors && (
-        <LinearGradient
-          colors={gradientColors as any}
-          style={styles.gradient}
-        />
+    <View style={[styles.wrapper, style]}>
+      {/* Мягкое свечение вокруг карточки */}
+      {withShadow && (
+        <View
+          style={[
+            styles.glowContainer,
+            {
+              borderRadius: borderRadius + 2,
+            },
+          ]}
+        >
+          <LinearGradient
+            colors={[
+              'rgba(167, 139, 250, 0.4)',
+              'rgba(167, 139, 250, 0.2)',
+              'rgba(167, 139, 250, 0)',
+            ]}
+            start={{ x: 0.5, y: 0 }}
+            end={{ x: 0.5, y: 1 }}
+            style={[styles.glow, { borderRadius: borderRadius + 2 }]}
+          />
+        </View>
       )}
-      <View style={[styles.content, contentStyle]}>
-        {children}
+
+      {/* Основная карточка с тонкой границей */}
+      <View
+        style={[
+          styles.card,
+          {
+            borderRadius,
+            borderWidth: borderWidth > 0 ? borderWidth : 1,
+            borderColor: borderWidth > 0
+              ? (borderColor || 'rgba(138, 43, 226, 0.2)')
+              : 'rgba(200, 180, 255, 0.4)',
+          },
+          withShadow && {
+            shadowColor: '#A78BFA',
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.3,
+            shadowRadius: 16,
+            elevation: 6,
+          },
+        ]}
+      >
+        <BlurView
+          intensity={intensity}
+          tint={blurTint}
+          style={styles.blur}
+        />
+        {gradientColors && (
+          <LinearGradient
+            colors={gradientColors as any}
+            style={styles.gradient}
+          />
+        )}
+        <View style={[styles.content, contentStyle]}>
+          {children}
+        </View>
       </View>
     </View>
   );
@@ -78,6 +105,20 @@ export const BlurCard = React.memo<BlurCardProps>(({
 BlurCard.displayName = 'BlurCard';
 
 const styles = StyleSheet.create({
+  wrapper: {
+    position: 'relative',
+  },
+  glowContainer: {
+    position: 'absolute',
+    top: -4,
+    left: -4,
+    right: -4,
+    bottom: -4,
+    pointerEvents: 'none',
+  },
+  glow: {
+    ...StyleSheet.absoluteFillObject,
+  },
   card: {
     overflow: 'hidden',
     position: 'relative',

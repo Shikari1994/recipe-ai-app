@@ -13,24 +13,22 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { useTheme } from '@/utils/ThemeContext';
+import { useLanguage } from '@/utils/LanguageContext';
 import { BlurView } from 'expo-blur';
 import { PLATFORM } from '@/constants/ui';
+import { fontScale } from '@/utils/responsive';
 import { MultiSelectModal, ServingsSelector, WallpaperSelector } from '@/components/ui';
-import { SettingItem, ProfileHeader, InfoModal } from '@/components/profile';
-import {
-  getUserPreferences,
-  saveUserPreferences,
-  setWallpaper,
-  UserPreferences,
-  Allergen,
-  DietaryRestriction,
-} from '@/utils/userPreferences';
-import { WALLPAPERS } from '@/constants/wallpapers';
+import { SettingItem, ProfileHeader, InfoModal, LanguageModal } from '@/components/profile';
+import { getUserPreferences, saveUserPreferences, setWallpaper } from '@/utils/userPreferences';
+import type { UserPreferences, Allergen, DietaryRestriction } from '@/types';
+import { WALLPAPERS, getDefaultWallpaperId } from '@/constants/wallpapers';
+import { LANGUAGES } from '@/constants/languages';
 
 export default function ProfileScreen() {
   const { isDark, toggleTheme, colors } = useTheme();
+  const { language, t } = useLanguage();
   const [notifications, setNotifications] = useState(true);
-  const [userName, setUserName] = useState('Олег');
+  const [userName, setUserName] = useState(t.profile.username);
   const [modalVisible, setModalVisible] = useState(false);
   const [modalTitle, setModalTitle] = useState('');
   const [modalContent, setModalContent] = useState('');
@@ -41,11 +39,12 @@ export default function ProfileScreen() {
     allergens: [],
     dietaryRestrictions: [],
     servings: 2,
-    wallpaperId: 'dark-image',
+    wallpaperId: getDefaultWallpaperId(isDark),
   });
   const [allergensModalVisible, setAllergensModalVisible] = useState(false);
   const [dietModalVisible, setDietModalVisible] = useState(false);
   const [wallpaperModalVisible, setWallpaperModalVisible] = useState(false);
+  const [languageModalVisible, setLanguageModalVisible] = useState(false);
 
   // Загрузка настроек при монтировании
   useFocusEffect(
@@ -92,7 +91,8 @@ export default function ProfileScreen() {
 
   const getWallpaperName = () => {
     const wallpaper = WALLPAPERS.find(w => w.id === preferences.wallpaperId);
-    return wallpaper ? wallpaper.name : 'Не выбрано';
+    if (!wallpaper) return t.profile.noAllergens;
+    return t.wallpapers[wallpaper.id as keyof typeof t.wallpapers] || wallpaper.name;
   };
 
   const showInfoModal = (title: string, content: string) => {
@@ -119,15 +119,15 @@ export default function ProfileScreen() {
 
   const handleLogout = () => {
     Alert.alert(
-      'Выход',
-      'Вы уверены, что хотите выйти?',
+      t.profile.logoutConfirm,
+      t.profile.logoutMessage,
       [
-        { text: 'Отмена', style: 'cancel' },
+        { text: t.common.cancel, style: 'cancel' },
         {
-          text: 'Выйти',
+          text: t.profile.logoutButton,
           onPress: () => {
             // TODO: Реализовать логику выхода из приложения
-            Alert.alert('Выход', 'Функция выхода будет реализована позже');
+            Alert.alert(t.profile.logoutConfirm, t.profile.logoutNotImplemented);
           }
         },
       ]
@@ -163,11 +163,12 @@ export default function ProfileScreen() {
 
       {/* Настройки приложения */}
       <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>Настройки приложения</Text>
+        <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>{t.profile.settings}</Text>
 
         <SettingItem
           icon="moon"
-          title="Темная тема"
+          title={t.profile.theme}
+          value={isDark ? t.profile.themeDark : t.profile.themeLight}
           showArrow={false}
           borderColor={colors.border}
           textColor={colors.text}
@@ -183,27 +184,10 @@ export default function ProfileScreen() {
         />
 
         <SettingItem
-          icon="notifications"
-          title="Уведомления"
-          showArrow={false}
-          borderColor={colors.border}
-          textColor={colors.text}
-          textSecondaryColor={colors.textSecondary}
-          rightComponent={
-            <Switch
-              value={notifications}
-              onValueChange={setNotifications}
-              trackColor={{ false: '#ddd', true: 'rgba(138, 43, 226, 0.8)' }}
-              thumbColor="#fff"
-            />
-          }
-        />
-
-        <SettingItem
           icon="language"
-          title="Язык"
-          value="Русский"
-          onPress={() => Alert.alert('Язык', 'Выбор языка')}
+          title={t.profile.language}
+          value={LANGUAGES.find(l => l.code === language)?.nativeName || LANGUAGES[0].nativeName}
+          onPress={() => setLanguageModalVisible(true)}
           borderColor={colors.border}
           textColor={colors.text}
           textSecondaryColor={colors.textSecondary}
@@ -211,7 +195,7 @@ export default function ProfileScreen() {
 
         <SettingItem
           icon="image"
-          title="Обои"
+          title={t.profile.wallpaper}
           value={getWallpaperName()}
           onPress={() => setWallpaperModalVisible(true)}
           borderColor={colors.border}
@@ -222,15 +206,15 @@ export default function ProfileScreen() {
 
       {/* Настройки рецептов */}
       <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>Предпочтения</Text>
+        <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>{t.profile.preferences}</Text>
 
         <SettingItem
           icon="nutrition"
-          title="Диетические ограничения"
+          title={t.profile.dietaryRestrictions}
           value={
             preferences.dietaryRestrictions.length > 0
-              ? `Выбрано: ${preferences.dietaryRestrictions.length}`
-              : 'Не выбрано'
+              ? `${t.profile.selected}: ${preferences.dietaryRestrictions.length}`
+              : t.profile.noAllergens
           }
           onPress={() => setDietModalVisible(true)}
           borderColor={colors.border}
@@ -240,11 +224,11 @@ export default function ProfileScreen() {
 
         <SettingItem
           icon="alert-circle"
-          title="Аллергии"
+          title={t.profile.allergens}
           value={
             preferences.allergens.length > 0
-              ? `Выбрано: ${preferences.allergens.length}`
-              : 'Не указано'
+              ? `${t.profile.selected}: ${preferences.allergens.length}`
+              : t.profile.noAllergens
           }
           onPress={() => setAllergensModalVisible(true)}
           borderColor={colors.border}
@@ -255,7 +239,7 @@ export default function ProfileScreen() {
         <View style={[styles.settingItem, { borderBottomColor: colors.border }]}>
           <View style={styles.settingLeft}>
             <Ionicons name="people" size={24} color="rgba(138, 43, 226, 0.8)" />
-            <Text style={[styles.settingTitle, { color: colors.text }]}>Количество порций</Text>
+            <Text style={[styles.settingTitle, { color: colors.text }]}>{t.profile.servings}</Text>
           </View>
         </View>
         <View style={styles.servingsContainer}>
@@ -269,12 +253,12 @@ export default function ProfileScreen() {
 
       {/* Дополнительно */}
       <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>Дополнительно</Text>
+        <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>{t.profile.additional}</Text>
 
         <SettingItem
           icon="help-circle"
-          title="Помощь"
-          onPress={() => showInfoModal('Помощь', 'Это приложение для поиска рецептов по продуктам.')}
+          title={t.profile.help}
+          onPress={() => showInfoModal(t.profile.help, t.profile.helpText)}
           borderColor={colors.border}
           textColor={colors.text}
           textSecondaryColor={colors.textSecondary}
@@ -282,7 +266,7 @@ export default function ProfileScreen() {
 
         <SettingItem
           icon="document-text"
-          title="Условия использования"
+          title={t.profile.termsOfService}
           onPress={() => Linking.openURL('https://shikari1994.github.io/recipe-ai-app/terms.html')}
           borderColor={colors.border}
           textColor={colors.text}
@@ -291,7 +275,7 @@ export default function ProfileScreen() {
 
         <SettingItem
           icon="shield-checkmark"
-          title="Политика конфиденциальности"
+          title={t.profile.privacyPolicy}
           onPress={() => Linking.openURL('https://shikari1994.github.io/recipe-ai-app/privacy.html')}
           borderColor={colors.border}
           textColor={colors.text}
@@ -300,8 +284,8 @@ export default function ProfileScreen() {
 
         <SettingItem
           icon="information-circle"
-          title="О приложении"
-          onPress={() => showInfoModal('О приложении', 'Версия 1.0.0\n\nRecipe AI - ваш умный помощник в создании рецептов.\n\nРазработано с ❤️')}
+          title={t.profile.about}
+          onPress={() => showInfoModal(t.profile.about, t.profile.aboutText)}
           borderColor={colors.border}
           textColor={colors.text}
           textSecondaryColor={colors.textSecondary}
@@ -324,7 +308,7 @@ export default function ProfileScreen() {
           ]}
         >
           <Ionicons name="log-out-outline" size={24} color="rgba(138, 43, 226, 0.8)" />
-          <Text style={styles.logoutText}>Выйти из аккаунта</Text>
+          <Text style={styles.logoutText}>{t.profile.logout}</Text>
         </View>
       </TouchableOpacity>
 
@@ -348,14 +332,14 @@ export default function ProfileScreen() {
       {/* Модальное окно аллергенов */}
       <MultiSelectModal
         visible={allergensModalVisible}
-        title="Выберите аллергены"
+        title={t.profile.selectAllergensModal}
         options={[
-          { value: 'milk' as Allergen, label: 'Молоко', icon: 'nutrition' },
-          { value: 'eggs' as Allergen, label: 'Яйца', icon: 'egg' },
-          { value: 'tree-nuts' as Allergen, label: 'Орехи', icon: 'leaf' },
-          { value: 'peanuts' as Allergen, label: 'Арахис', icon: 'leaf' },
-          { value: 'gluten' as Allergen, label: 'Глютен', icon: 'warning' },
-          { value: 'fish' as Allergen, label: 'Рыба', icon: 'fish' },
+          { value: 'milk' as Allergen, label: t.allergens.milk, icon: 'nutrition' },
+          { value: 'eggs' as Allergen, label: t.allergens.eggs, icon: 'egg' },
+          { value: 'tree-nuts' as Allergen, label: t.allergens.treeNuts, icon: 'leaf' },
+          { value: 'peanuts' as Allergen, label: t.allergens.peanuts, icon: 'leaf' },
+          { value: 'gluten' as Allergen, label: t.allergens.gluten, icon: 'warning' },
+          { value: 'fish' as Allergen, label: t.allergens.fish, icon: 'fish' },
         ]}
         selectedValues={preferences.allergens}
         onClose={() => setAllergensModalVisible(false)}
@@ -366,11 +350,11 @@ export default function ProfileScreen() {
       {/* Модальное окно диетических ограничений */}
       <MultiSelectModal
         visible={dietModalVisible}
-        title="Диетические ограничения"
+        title={t.profile.selectDietaryRestrictionsModal}
         options={[
-          { value: 'vegetarian' as DietaryRestriction, label: 'Вегетарианские', icon: 'leaf' },
-          { value: 'vegan' as DietaryRestriction, label: 'Веганские', icon: 'leaf' },
-          { value: 'low-calorie' as DietaryRestriction, label: 'Низкокалорийные', icon: 'fitness' },
+          { value: 'vegetarian' as DietaryRestriction, label: t.profile.vegetarian, icon: 'leaf' },
+          { value: 'vegan' as DietaryRestriction, label: t.profile.vegan, icon: 'leaf' },
+          { value: 'low-calorie' as DietaryRestriction, label: t.profile.lowCalorie, icon: 'fitness' },
         ]}
         selectedValues={preferences.dietaryRestrictions}
         onClose={() => setDietModalVisible(false)}
@@ -381,10 +365,16 @@ export default function ProfileScreen() {
       {/* Модальное окно выбора обоев */}
       <WallpaperSelector
         visible={wallpaperModalVisible}
-        selectedWallpaperId={preferences.wallpaperId || 'dark-image'}
+        selectedWallpaperId={preferences.wallpaperId || getDefaultWallpaperId(isDark)}
         onClose={() => setWallpaperModalVisible(false)}
         onSelect={handleWallpaperChange}
         isDark={isDark}
+      />
+
+      {/* Модальное окно выбора языка */}
+      <LanguageModal
+        visible={languageModalVisible}
+        onClose={() => setLanguageModalVisible(false)}
       />
     </View>
   );
@@ -429,7 +419,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   sectionTitle: {
-    fontSize: 14,
+    fontSize: fontScale(14),
     fontWeight: '600',
     textTransform: 'uppercase',
     paddingHorizontal: 16,
@@ -453,7 +443,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   settingTitle: {
-    fontSize: 16,
+    fontSize: fontScale(16),
     fontWeight: '500',
     marginLeft: 12,
   },
@@ -469,7 +459,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   logoutText: {
-    fontSize: 16,
+    fontSize: fontScale(16),
     fontWeight: '500',
     color: 'rgba(138, 43, 226, 0.8)',
   },

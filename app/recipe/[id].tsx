@@ -1,33 +1,28 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
-  Text,
-  ScrollView,
   StyleSheet,
-  TouchableOpacity,
   Alert,
   ActivityIndicator,
-  SafeAreaView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
 import { getAIRecipeById } from '@/utils/storage';
-import { AIRecipe } from '@/utils/aiService';
+import type { AIRecipe } from '@/types';
 import { useTheme } from '@/utils/ThemeContext';
 import { useRecipeActions } from '@/hooks';
-import { RecipeMetadata, RecipeSteps } from '@/components/recipe';
-import { getThemeColors, COLORS } from '@/constants/colors';
+import { RecipeDetailView } from '@/components/recipe/RecipeDetailView';
+import { COLORS } from '@/constants/colors';
+import { useLanguage } from '@/utils/LanguageContext';
 
 export default function RecipeDetailScreen() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
-  const { colors, isDark } = useTheme();
+  const { colors } = useTheme();
+  const { t } = useLanguage();
   const { isFavorite, toggleFavorite } = useRecipeActions(id as string);
-  const [checkedSteps, setCheckedSteps] = useState<Record<number, boolean>>({});
   const [recipe, setRecipe] = useState<AIRecipe | null>(null);
   const [loading, setLoading] = useState(true);
-
-  const themeColors = useMemo(() => getThemeColors(isDark), [isDark]);
 
   useEffect(() => {
     const loadRecipe = async () => {
@@ -35,13 +30,13 @@ export default function RecipeDetailScreen() {
         setLoading(true);
         const aiRecipe = await getAIRecipeById(id as string);
         if (!aiRecipe) {
-          Alert.alert('Ошибка', 'Рецепт не найден');
+          Alert.alert(t.recipe.error, t.recipe.notFound);
           router.back();
         } else {
           setRecipe(aiRecipe);
         }
       } catch (error) {
-        Alert.alert('Ошибка', 'Не удалось загрузить рецепт');
+        Alert.alert(t.recipe.error, t.recipe.loadError);
         router.back();
       } finally {
         setLoading(false);
@@ -49,19 +44,12 @@ export default function RecipeDetailScreen() {
     };
 
     loadRecipe();
-  }, [id, router]);
+  }, [id, router, t.recipe.error, t.recipe.notFound, t.recipe.loadError]);
 
   const handleToggleFavorite = useCallback(async () => {
     if (!recipe) return;
     await toggleFavorite(recipe);
   }, [recipe, toggleFavorite]);
-
-  const toggleStep = useCallback((index: number) => {
-    setCheckedSteps((prev) => ({
-      ...prev,
-      [index]: !prev[index],
-    }));
-  }, []);
 
   if (loading) {
     return (
@@ -76,43 +64,14 @@ export default function RecipeDetailScreen() {
   }
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      <ScrollView style={styles.content} contentContainerStyle={styles.scrollContent}>
-        {/* Заголовок */}
-        <View style={styles.header}>
-          <Text style={[styles.title, { color: colors.text }]}>{recipe.title}</Text>
-          <TouchableOpacity style={styles.favoriteButton} onPress={handleToggleFavorite}>
-            <Ionicons
-              name={isFavorite ? 'heart' : 'heart-outline'}
-              size={28}
-              color={COLORS.primary}
-            />
-          </TouchableOpacity>
-        </View>
-
-        {/* Метаданные */}
-        <View style={[styles.metaContainer, { backgroundColor: themeColors.metaBg }]}>
-          <RecipeMetadata
-            time={recipe.time}
-            calories={recipe.calories}
-            textColor={colors.textSecondary}
-          />
-        </View>
-
-        {/* Шаги приготовления */}
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Приготовление</Text>
-          <RecipeSteps
-            steps={recipe.steps}
-            checkedSteps={checkedSteps}
-            onStepToggle={toggleStep}
-            textColor={colors.text}
-            allowChecking={true}
-          />
-        </View>
-
-        <View style={styles.bottomPadding} />
-      </ScrollView>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top', 'left', 'right']}>
+      <RecipeDetailView
+        recipe={recipe}
+        isFavorite={isFavorite}
+        onToggleFavorite={handleToggleFavorite}
+        showBackButton={true}
+        onBack={() => router.back()}
+      />
     </SafeAreaView>
   );
 }
@@ -124,47 +83,5 @@ const styles = StyleSheet.create({
   centerContent: {
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  content: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingTop: 8,
-    paddingBottom: 20,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    padding: 20,
-    paddingTop: 12,
-  },
-  title: {
-    flex: 1,
-    fontSize: 28,
-    fontWeight: '700',
-    marginRight: 12,
-  },
-  favoriteButton: {
-    padding: 8,
-  },
-  metaContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    marginBottom: 20,
-  },
-  section: {
-    paddingHorizontal: 20,
-    marginBottom: 24,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    marginBottom: 16,
-  },
-  bottomPadding: {
-    height: 20,
   },
 });

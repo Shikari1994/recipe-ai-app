@@ -4,9 +4,10 @@ import {
   addToFavorites as addToFavoritesStorage,
   removeFromFavorites as removeFromFavoritesStorage,
   isFavorite as checkIsFavorite,
+  isFavoriteSync,
   saveAIRecipe,
 } from '@/utils/storage';
-import { AIRecipe } from '@/utils/aiService';
+import type { AIRecipe } from '@/types';
 
 /**
  * Custom hook для управления избранными рецептами
@@ -72,14 +73,15 @@ export function useFavorites(recipeId?: string) {
 
   // Переключение избранного
   const toggleFavorite = useCallback(async (id: string, aiRecipe?: AIRecipe) => {
-    const isCurrentlyFavorite = await checkIsFavorite(id);
+    // Используем синхронную проверку по уже загруженному массиву
+    const isCurrentlyFavorite = isFavoriteSync(favorites, id);
 
     if (isCurrentlyFavorite) {
       return await removeFromFavorites(id);
     } else {
       return await addToFavorites(id, aiRecipe);
     }
-  }, [addToFavorites, removeFromFavorites]);
+  }, [favorites, addToFavorites, removeFromFavorites]);
 
   // Проверка, является ли рецепт избранным
   const checkFavorite = useCallback(async (id: string) => {

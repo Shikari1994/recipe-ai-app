@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { fontScale, scale, verticalScale } from '@/utils/responsive';
 
 interface ProfileHeaderProps {
   userName: string;
@@ -26,26 +27,26 @@ export function ProfileHeader({ userName, textColor }: ProfileHeaderProps) {
 const styles = StyleSheet.create({
   profileSection: {
     alignItems: 'center',
-    paddingVertical: 32,
-    marginBottom: 24,
+    paddingVertical: verticalScale(32),
+    marginBottom: verticalScale(24),
   },
   avatarContainer: {
-    marginBottom: 16,
+    marginBottom: verticalScale(16),
   },
   avatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: scale(80),
+    height: scale(80),
+    borderRadius: scale(40),
     justifyContent: 'center',
     alignItems: 'center',
   },
   avatarText: {
-    fontSize: 32,
+    fontSize: fontScale(32),
     fontWeight: 'bold',
     color: '#fff',
   },
   userName: {
-    fontSize: 24,
+    fontSize: fontScale(24),
     fontWeight: '600',
   },
 });

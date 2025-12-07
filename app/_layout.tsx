@@ -1,7 +1,45 @@
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { ThemeProvider, useTheme } from '@/utils/ThemeContext';
+import { LanguageProvider } from '@/utils/LanguageContext';
 import { COLORS } from '@/constants/colors';
+import { useFonts, Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold } from '@expo-google-fonts/inter';
+import * as SplashScreen from 'expo-splash-screen';
+import { useEffect } from 'react';
+import { Text, TextInput } from 'react-native';
+
+// Предотвращаем автоскрытие splash screen
+SplashScreen.preventAutoHideAsync();
+
+// Устанавливаем Inter как шрифт по умолчанию для всех Text
+const originalTextRender = (Text as any).render;
+(Text as any).render = function (props: any, ref: any) {
+  const style = props.style || {};
+  const fontWeight = style.fontWeight;
+
+  let fontFamily = 'Inter_400Regular';
+  if (fontWeight === '500' || fontWeight === 500) {
+    fontFamily = 'Inter_500Medium';
+  } else if (fontWeight === '600' || fontWeight === 600) {
+    fontFamily = 'Inter_600SemiBold';
+  } else if (fontWeight === '700' || fontWeight === 700 || fontWeight === 'bold') {
+    fontFamily = 'Inter_700Bold';
+  }
+
+  return originalTextRender.call(this, {
+    ...props,
+    style: [{ fontFamily }, style],
+  }, ref);
+};
+
+// Устанавливаем Inter для TextInput
+const originalTextInputRender = (TextInput as any).render;
+(TextInput as any).render = function (props: any, ref: any) {
+  return originalTextInputRender.call(this, {
+    ...props,
+    style: [{ fontFamily: 'Inter_400Regular' }, props.style],
+  }, ref);
+};
 
 function RootLayoutContent() {
   const { colors, isDark } = useTheme();
@@ -14,16 +52,7 @@ function RootLayoutContent() {
         <Stack.Screen
           name="recipe/[id]"
           options={{
-            headerShown: true,
-            title: 'Рецепт',
-            headerStyle: {
-              backgroundColor: colors.background,
-            },
-            headerTintColor: colors.primary,
-            headerTitleStyle: {
-              color: colors.text,
-            },
-            headerShadowVisible: false,
+            headerShown: false,
           }}
         />
       </Stack>
@@ -32,9 +61,28 @@ function RootLayoutContent() {
 }
 
 export default function RootLayout() {
+  const [fontsLoaded] = useFonts({
+    Inter_400Regular,
+    Inter_500Medium,
+    Inter_600SemiBold,
+    Inter_700Bold,
+  });
+
+  useEffect(() => {
+    if (fontsLoaded) {
+      SplashScreen.hideAsync();
+    }
+  }, [fontsLoaded]);
+
+  if (!fontsLoaded) {
+    return null;
+  }
+
   return (
     <ThemeProvider>
-      <RootLayoutContent />
+      <LanguageProvider>
+        <RootLayoutContent />
+      </LanguageProvider>
     </ThemeProvider>
   );
 }

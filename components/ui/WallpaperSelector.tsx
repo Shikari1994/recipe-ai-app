@@ -13,6 +13,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import { Ionicons } from '@expo/vector-icons';
 import { WALLPAPERS, WallpaperConfig } from '@/constants/wallpapers';
+import { fontScale } from '@/utils/responsive';
 
 type WallpaperSelectorProps = {
   visible: boolean;
@@ -165,7 +166,7 @@ const styles = StyleSheet.create({
     borderBottomColor: 'rgba(138, 43, 226, 0.2)',
   },
   title: {
-    fontSize: 24,
+    fontSize: fontScale(24),
     fontWeight: '700',
   },
   closeButton: {
@@ -216,7 +217,7 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   wallpaperName: {
-    fontSize: 14,
+    fontSize: fontScale(14),
     fontWeight: '600',
     textAlign: 'center',
     paddingVertical: 12,

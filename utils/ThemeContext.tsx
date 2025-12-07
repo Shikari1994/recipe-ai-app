@@ -1,5 +1,7 @@
 import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { setWallpaper } from './userPreferences';
+import { getDefaultWallpaperId } from '@/constants/wallpapers';
 
 type Theme = 'light' | 'dark';
 
@@ -70,6 +72,10 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
     setTheme(newTheme);
     try {
       await AsyncStorage.setItem(THEME_KEY, newTheme);
+
+      // Автоматически меняем обои при смене темы
+      const newWallpaperId = getDefaultWallpaperId(newTheme === 'dark');
+      await setWallpaper(newWallpaperId);
     } catch (error) {
       console.error('Error saving theme:', error);
     }

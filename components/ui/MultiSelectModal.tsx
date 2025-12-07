@@ -12,6 +12,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { BlurCard } from './BlurCard';
 import { COLORS } from '@/constants/colors';
 import { ANIMATION, SPACING } from '@/constants/ui';
+import { fontScale } from '@/utils/responsive';
+import { useLanguage } from '@/utils/LanguageContext';
 
 type MultiSelectOption<T> = {
   value: T;
@@ -40,6 +42,7 @@ export function MultiSelectModal<T extends string>({
 }: MultiSelectModalProps<T>) {
   const [selected, setSelected] = useState<T[]>(selectedValues);
   const slideAnim = useRef(new Animated.Value(0)).current;
+  const { t } = useLanguage();
 
   useEffect(() => {
     if (visible) {
@@ -181,7 +184,7 @@ export function MultiSelectModal<T extends string>({
                   onPress={onClose}
                   activeOpacity={0.7}
                 >
-                  <Text style={styles.cancelButtonText}>Отмена</Text>
+                  <Text style={styles.cancelButtonText}>{t.common.cancel}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[styles.button, styles.saveButton]}
@@ -189,7 +192,7 @@ export function MultiSelectModal<T extends string>({
                   activeOpacity={0.7}
                 >
                   <Text style={styles.saveButtonText}>
-                    Сохранить ({selected.length})
+                    {t.common.save} ({selected.length})
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -225,7 +228,7 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.lg,
   },
   title: {
-    fontSize: 20,
+    fontSize: fontScale(20),
     fontWeight: '600',
   },
   closeButton: {
@@ -246,7 +249,7 @@ const styles = StyleSheet.create({
   },
   optionLabel: {
     flex: 1,
-    fontSize: 16,
+    fontSize: fontScale(16),
   },
   checkbox: {
     width: 24,
@@ -278,12 +281,12 @@ const styles = StyleSheet.create({
   },
   cancelButtonText: {
     color: COLORS.primary,
-    fontSize: 16,
+    fontSize: fontScale(16),
     fontWeight: '600',
   },
   saveButtonText: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: fontScale(16),
     fontWeight: '600',
   },
 });

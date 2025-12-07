@@ -1,41 +1,13 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import type { UserPreferences, Allergen, DietaryRestriction } from '@/types';
 
 const USER_PREFERENCES_KEY = '@user_preferences';
-
-export type DietaryRestriction =
-  | 'vegetarian'
-  | 'vegan'
-  | 'low-calorie';
-
-export type Allergen =
-  | 'milk'
-  | 'eggs'
-  | 'tree-nuts'
-  | 'peanuts'
-  | 'gluten'
-  | 'fish';
-
-export type UserPreferences = {
-  allergens: Allergen[];
-  dietaryRestrictions: DietaryRestriction[];
-  servings: number;
-  wallpaperId?: string;
-};
 
 const DEFAULT_PREFERENCES: UserPreferences = {
   allergens: [],
   dietaryRestrictions: [],
   servings: 2,
-  wallpaperId: 'dark-image',
-};
-
-export const ALLERGEN_LABELS: Record<Allergen, string> = {
-  'milk': 'Молоко',
-  'eggs': 'Яйца',
-  'tree-nuts': 'Орехи',
-  'peanuts': 'Арахис',
-  'gluten': 'Глютен',
-  'fish': 'Рыба',
+  // wallpaperId не установлен - будет использоваться getDefaultWallpaperId(isDark)
 };
 
 /**
@@ -68,82 +40,6 @@ export async function saveUserPreferences(preferences: UserPreferences): Promise
 }
 
 /**
- * Добавить аллерген
- */
-export async function addAllergen(allergen: Allergen): Promise<boolean> {
-  try {
-    const prefs = await getUserPreferences();
-    if (!prefs.allergens.includes(allergen)) {
-      prefs.allergens.push(allergen);
-      return await saveUserPreferences(prefs);
-    }
-    return true;
-  } catch (error) {
-    console.error('Error adding allergen:', error);
-    return false;
-  }
-}
-
-/**
- * Удалить аллерген
- */
-export async function removeAllergen(allergen: Allergen): Promise<boolean> {
-  try {
-    const prefs = await getUserPreferences();
-    prefs.allergens = prefs.allergens.filter(a => a !== allergen);
-    return await saveUserPreferences(prefs);
-  } catch (error) {
-    console.error('Error removing allergen:', error);
-    return false;
-  }
-}
-
-/**
- * Добавить диетическое ограничение
- */
-export async function addDietaryRestriction(restriction: DietaryRestriction): Promise<boolean> {
-  try {
-    const prefs = await getUserPreferences();
-    if (!prefs.dietaryRestrictions.includes(restriction)) {
-      prefs.dietaryRestrictions.push(restriction);
-      return await saveUserPreferences(prefs);
-    }
-    return true;
-  } catch (error) {
-    console.error('Error adding dietary restriction:', error);
-    return false;
-  }
-}
-
-/**
- * Удалить диетическое ограничение
- */
-export async function removeDietaryRestriction(restriction: DietaryRestriction): Promise<boolean> {
-  try {
-    const prefs = await getUserPreferences();
-    prefs.dietaryRestrictions = prefs.dietaryRestrictions.filter(r => r !== restriction);
-    return await saveUserPreferences(prefs);
-  } catch (error) {
-    console.error('Error removing dietary restriction:', error);
-    return false;
-  }
-}
-
-/**
- * Установить количество порций
- */
-export async function setServings(servings: number): Promise<boolean> {
-  try {
-    const prefs = await getUserPreferences();
-    prefs.servings = servings;
-    return await saveUserPreferences(prefs);
-  } catch (error) {
-    console.error('Error setting servings:', error);
-    return false;
-  }
-}
-
-/**
  * Установить обои
  */
 export async function setWallpaper(wallpaperId: string): Promise<boolean> {
@@ -160,10 +56,10 @@ export async function setWallpaper(wallpaperId: string): Promise<boolean> {
 /**
  * Получить текстовое описание аллергенов для промпта
  */
-export function getAllergensText(allergens: Allergen[]): string {
+export function getAllergensText(allergens: Allergen[], language: string = 'ru'): string {
   if (allergens.length === 0) return '';
 
-  const allergenNames: Record<Allergen, string> = {
+  const allergenNamesRu: Record<Allergen, string> = {
     'milk': 'молоко',
     'eggs': 'яйца',
     'tree-nuts': 'орехи',
@@ -172,47 +68,73 @@ export function getAllergensText(allergens: Allergen[]): string {
     'fish': 'рыба',
   };
 
+  const allergenNamesEn: Record<Allergen, string> = {
+    'milk': 'dairy',
+    'eggs': 'eggs',
+    'tree-nuts': 'tree nuts',
+    'peanuts': 'peanuts',
+    'gluten': 'gluten',
+    'fish': 'fish',
+  };
+
+  const allergenNames = language === 'en' ? allergenNamesEn : allergenNamesRu;
   const names = allergens.map(a => allergenNames[a]);
-  return `Исключи из рецептов следующие продукты (аллергия): ${names.join(', ')}.`;
+
+  return language === 'en'
+    ? `Exclude the following products from recipes (allergy): ${names.join(', ')}.`
+    : `Исключи из рецептов следующие продукты (аллергия): ${names.join(', ')}.`;
 }
 
 /**
  * Получить текстовое описание диетических ограничений для промпта
  */
-export function getDietaryRestrictionsText(restrictions: DietaryRestriction[]): string {
+export function getDietaryRestrictionsText(restrictions: DietaryRestriction[], language: string = 'ru'): string {
   if (restrictions.length === 0) return '';
 
-  const restrictionNames: Record<DietaryRestriction, string> = {
+  const restrictionNamesRu: Record<DietaryRestriction, string> = {
     'vegetarian': 'вегетарианские рецепты (без мяса и рыбы)',
     'vegan': 'веганские рецепты (без продуктов животного происхождения)',
     'low-calorie': 'низкокалорийные рецепты (менее 400 ккал на порцию)',
   };
 
+  const restrictionNamesEn: Record<DietaryRestriction, string> = {
+    'vegetarian': 'vegetarian recipes (no meat or fish)',
+    'vegan': 'vegan recipes (no animal products)',
+    'low-calorie': 'low-calorie recipes (less than 400 kcal per serving)',
+  };
+
+  const restrictionNames = language === 'en' ? restrictionNamesEn : restrictionNamesRu;
   const descriptions = restrictions.map(r => restrictionNames[r]);
-  return `Диетические требования: ${descriptions.join('; ')}.`;
+
+  return language === 'en'
+    ? `Dietary requirements: ${descriptions.join('; ')}.`
+    : `Диетические требования: ${descriptions.join('; ')}.`;
 }
 
 /**
  * Получить полный текст настроек для промпта
  */
-export function getPreferencesPromptText(preferences: UserPreferences): string {
+export function getPreferencesPromptText(preferences: UserPreferences, language: string = 'ru'): string {
   const parts: string[] = [];
 
   // Аллергены
-  const allergensText = getAllergensText(preferences.allergens);
+  const allergensText = getAllergensText(preferences.allergens, language);
   if (allergensText) {
     parts.push(allergensText);
   }
 
   // Диетические ограничения
-  const restrictionsText = getDietaryRestrictionsText(preferences.dietaryRestrictions);
+  const restrictionsText = getDietaryRestrictionsText(preferences.dietaryRestrictions, language);
   if (restrictionsText) {
     parts.push(restrictionsText);
   }
 
   // Количество порций
   if (preferences.servings > 0) {
-    parts.push(`Количество порций: ${preferences.servings}.`);
+    const servingsText = language === 'en'
+      ? `Number of servings: ${preferences.servings}.`
+      : `Количество порций: ${preferences.servings}.`;
+    parts.push(servingsText);
   }
 
   return parts.join(' ');

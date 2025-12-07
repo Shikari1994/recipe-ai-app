@@ -64,15 +64,27 @@
         a:hover {
             text-decoration: underline;
         }
+        .lang-switch {
+            text-align: right;
+            margin-bottom: 20px;
+        }
+        .lang-switch a {
+            margin-left: 10px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
+        <div class="lang-switch">
+            <strong>🇷🇺 Русский</strong>
+            <a href="privacy-en.html">🇬🇧 English</a>
+        </div>
+
         <h1>Политика конфиденциальности</h1>
         <p><strong>Recipe AI</strong></p>
 
         <div class="last-updated">
-            <strong>Дата последнего обновления:</strong> 14 ноября 2025
+            <strong>Дата последнего обновления:</strong> 7 декабря 2024
         </div>
 
         <h2>1. Введение</h2>
@@ -143,14 +155,22 @@
             Ваши запросы обрабатываются следующими компаниями:
         </p>
 
-        <h3>4.1 OpenRouter AI</h3>
+        <h3>4.1 Cloudflare Workers</h3>
         <ul>
             <li><strong>Что передаётся:</strong> текстовые запросы, изображения, настройки аллергенов</li>
+            <li><strong>Цель:</strong> безопасная маршрутизация запросов к AI сервисам (защита API ключей)</li>
+            <li><strong>Политика:</strong> <a href="https://www.cloudflare.com/privacypolicy/" target="_blank">https://www.cloudflare.com/privacypolicy/</a></li>
+            <li><strong>Примечание:</strong> Cloudflare Workers не хранит ваши данные, а только проксирует запросы</li>
+        </ul>
+
+        <h3>4.2 OpenRouter AI</h3>
+        <ul>
+            <li><strong>Что передаётся:</strong> текстовые запросы, изображения, настройки аллергенов (через Cloudflare)</li>
             <li><strong>Цель:</strong> маршрутизация запросов к AI моделям</li>
             <li><strong>Политика:</strong> <a href="https://openrouter.ai/privacy" target="_blank">https://openrouter.ai/privacy</a></li>
         </ul>
 
-        <h3>4.2 Google Gemini (через OpenRouter)</h3>
+        <h3>4.3 Google Gemini (через OpenRouter)</h3>
         <ul>
             <li><strong>Что передаётся:</strong> текстовые запросы и изображения для анализа</li>
             <li><strong>Цель:</strong> генерация рецептов на основе ваших продуктов</li>
@@ -227,8 +247,8 @@
         </p>
 
         <div class="last-updated">
-            <p><strong>Версия документа:</strong> 1.0</p>
-            <p><strong>Дата вступления в силу:</strong> 14 ноября 2025</p>
+            <p><strong>Версия документа:</strong> 1.1</p>
+            <p><strong>Дата вступления в силу:</strong> 7 декабря 2024</p>
         </div>
     </div>
 </body>

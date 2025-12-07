@@ -1,10 +1,11 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { BlurCard } from '@/components/ui';
+import { BlurView } from 'expo-blur';
+import { useLanguage } from '@/utils/LanguageContext';
 import { COLORS, getThemeColors } from '@/constants/colors';
-import { BLUR, SIZES, SHADOWS } from '@/constants/ui';
+import { scale, verticalScale, fontScale, moderateScale } from '@/utils/responsive';
 
 type WelcomeCardProps = {
   isDark: boolean;
@@ -12,33 +13,43 @@ type WelcomeCardProps = {
 
 export const WelcomeCard = React.memo(({ isDark }: WelcomeCardProps) => {
   const themeColors = getThemeColors(isDark);
+  const { t } = useLanguage();
 
   return (
     <View style={styles.wrapper}>
-      <BlurCard
-        isDark={isDark}
-        intensity={BLUR.intensity.medium}
-        gradientColors={isDark ? COLORS.gradient.purple.dark : COLORS.gradient.purple.light}
-        style={styles.card}
-        contentStyle={styles.content}
-        borderColor={COLORS.purple.light}
-        shadowColor={COLORS.purple.shadow}
-      >
-        <View style={styles.iconContainer}>
-          <LinearGradient
-            colors={COLORS.gradient.icon}
-            style={styles.iconGradient}
-          >
-            <Ionicons name="restaurant" size={SIZES.iconLarge} color="#fff" />
-          </LinearGradient>
+      {/* Основная карточка */}
+      <View style={[
+        styles.card,
+        {
+          borderColor: 'rgba(200, 180, 255, 0.4)',
+        }
+      ]}>
+        <BlurView
+          intensity={isDark ? 80 : 60}
+          tint={isDark ? 'dark' : 'light'}
+          style={styles.blur}
+        />
+
+        <View style={styles.content}>
+          {/* Лого */}
+          <View style={styles.logoContainer}>
+            <LinearGradient
+              colors={COLORS.gradient.icon}
+              style={styles.logo}
+            >
+              <Ionicons name="restaurant" size={moderateScale(24)} color="#fff" />
+            </LinearGradient>
+          </View>
+
+          {/* Текст */}
+          <Text style={[styles.greeting, { color: themeColors.text }]}>
+            {t.welcome.title}
+          </Text>
+          <Text style={[styles.description, { color: themeColors.textSecondary }]}>
+            {t.welcome.subtitle}
+          </Text>
         </View>
-        <Text style={[styles.title, { color: themeColors.text }]}>
-          Привет! 👋
-        </Text>
-        <Text style={[styles.text, { color: themeColors.welcomeText }]}>
-          Я помогу тебе найти рецепты. Напиши, какие продукты у тебя есть, или сфотографируй их!
-        </Text>
-      </BlurCard>
+      </View>
     </View>
   );
 });
@@ -46,37 +57,46 @@ export const WelcomeCard = React.memo(({ isDark }: WelcomeCardProps) => {
 const styles = StyleSheet.create({
   wrapper: {
     width: '100%',
-    paddingHorizontal: 20,
+    paddingHorizontal: scale(20),
     alignItems: 'center',
   },
   card: {
     width: '100%',
-    maxWidth: SIZES.cardBorderRadius * 14.5, // ~350px
+    maxWidth: scale(350),
+    borderRadius: scale(16),
+    borderWidth: 1,
+    overflow: 'hidden',
+  },
+  blur: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
   },
   content: {
-    padding: SIZES.cardBorderRadius + 8, // 32px
+    padding: scale(24),
     alignItems: 'center',
   },
-  iconContainer: {
-    marginBottom: 20,
+  logoContainer: {
+    marginBottom: verticalScale(12),
   },
-  iconGradient: {
-    width: SIZES.iconExtraLarge,
-    height: SIZES.iconExtraLarge,
-    borderRadius: SIZES.iconExtraLarge / 2,
+  logo: {
+    width: scale(44),
+    height: scale(44),
+    borderRadius: scale(22),
     justifyContent: 'center',
     alignItems: 'center',
-    ...SHADOWS.purple,
   },
-  title: {
-    fontSize: 24,
+  greeting: {
+    fontSize: fontScale(18),
     fontWeight: '700',
-    marginBottom: 12,
+    marginBottom: verticalScale(8),
     textAlign: 'center',
   },
-  text: {
-    fontSize: 16,
+  description: {
+    fontSize: fontScale(14),
     textAlign: 'center',
-    lineHeight: 24,
+    lineHeight: moderateScale(20),
   },
 });

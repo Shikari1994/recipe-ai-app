@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { AIRecipe } from './aiService';
+import type { AIRecipe } from '@/types';
 
 const FAVORITES_KEY = '@favorites';
 const AI_RECIPES_KEY = '@ai_recipes';
@@ -44,6 +44,17 @@ export const isFavorite = async (recipeId: string): Promise<boolean> => {
     console.error('Error checking favorite:', error);
     return false;
   }
+};
+
+/**
+ * Синхронная проверка избранного (оптимизированная)
+ * Используйте когда у вас уже есть загруженный массив favorites
+ * @param favoriteIds - массив ID избранных рецептов
+ * @param recipeId - ID рецепта для проверки
+ * @returns true если рецепт в избранном
+ */
+export const isFavoriteSync = (favoriteIds: string[], recipeId: string): boolean => {
+  return favoriteIds.includes(recipeId);
 };
 
 // AI Recipes Storage

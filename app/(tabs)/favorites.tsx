@@ -2,28 +2,44 @@ import React, { useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
+  TextInput,
   FlatList,
   TouchableOpacity,
   StyleSheet,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { useTheme } from '@/utils/ThemeContext';
+import { useLanguage } from '@/utils/LanguageContext';
 import { getFavoriteRecipes, removeFromFavorites, getAIRecipesByIds } from '@/utils/storage';
-import { AIRecipe } from '@/utils/aiService';
+import type { AIRecipe } from '@/types';
 import { AIRecipeModal } from '@/components/AIRecipeModal';
 import { getThemeColors, COLORS } from '@/constants/colors';
-import { getRussianPlural } from '@/utils/textUtils';
+import { getPlural } from '@/utils/plurals';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
+import { fontScale, moderateScale } from '@/utils/responsive';
 
 export default function FavoritesScreen() {
   const { colors, isDark } = useTheme();
+  const { t, language } = useLanguage();
   const [favorites, setFavorites] = useState<AIRecipe[]>([]);
   const [selectedAIRecipe, setSelectedAIRecipe] = useState<AIRecipe | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const themeColors = useMemo(() => getThemeColors(isDark), [isDark]);
+
+  // Фильтрация по поиску (только по названию)
+  const filteredFavorites = useMemo(() => {
+    if (!searchQuery.trim()) return favorites;
+
+    const query = searchQuery.toLowerCase();
+    return favorites.filter((recipe) =>
+      recipe.title.toLowerCase().includes(query)
+    );
+  }, [favorites, searchQuery]);
 
   const loadFavorites = useCallback(async () => {
     const favoriteIds = await getFavoriteRecipes();
@@ -105,13 +121,13 @@ export default function FavoritesScreen() {
               <View style={styles.metaItem}>
                 <Ionicons name="sparkles" size={16} color={COLORS.primary} />
                 <Text style={[styles.metaText, { color: COLORS.primary }]}>
-                  AI рецепт
+                  {t.favorites.aiRecipe}
                 </Text>
               </View>
             </View>
 
             <Text style={[styles.ingredientsPreview, { color: themeColors.textMuted }]} numberOfLines={1}>
-              {item.steps.length} {getRussianPlural(item.steps.length, 'шаг', 'шага', 'шагов')} приготовления
+              {item.steps.length} {getPlural(item.steps.length, language, t.favorites)} {t.favorites.cooking}
             </Text>
           </View>
 
@@ -124,30 +140,74 @@ export default function FavoritesScreen() {
         </View>
       </TouchableOpacity>
     );
-  }, [colors, isDark, themeColors, openRecipe, handleRemoveFromFavorites]);
+  }, [colors, isDark, themeColors, openRecipe, handleRemoveFromFavorites, t, language]);
 
   const EmptyState = useMemo(() => (
     <View style={styles.emptyContainer}>
       <Ionicons name="heart-outline" size={80} color={colors.textSecondary} />
       <Text style={[styles.emptyTitle, { color: colors.text }]}>
-        Нет избранных рецептов
+        {t.favorites.empty}
       </Text>
       <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
-        Добавляйте понравившиеся рецепты, нажимая на ❤️
+        {t.favorites.emptyDescription}
       </Text>
     </View>
-  ), [colors]);
+  ), [colors, t]);
 
   const keyExtractor = useCallback((item: AIRecipe) => item.id, []);
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top', 'left', 'right']}>
+      {/* Поиск */}
+      {favorites.length > 0 && (
+        <View style={styles.searchContainer}>
+          <View
+            style={[
+              styles.searchInputContainer,
+              { backgroundColor: isDark ? '#2a2a2a' : '#e5e5e5' },
+            ]}
+          >
+            <Ionicons
+              name="search"
+              size={20}
+              color={isDark ? '#999' : '#666'}
+            />
+            <TextInput
+              style={[styles.searchInput, { color: colors.text }]}
+              placeholder={t.favorites.searchPlaceholder}
+              placeholderTextColor={themeColors.inputPlaceholder}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+            />
+            {searchQuery.length > 0 && (
+              <TouchableOpacity onPress={() => setSearchQuery('')}>
+                <Ionicons
+                  name="close-circle"
+                  size={20}
+                  color={isDark ? '#999' : '#666'}
+                />
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
+      )}
+
       <FlatList
-        data={favorites}
+        data={filteredFavorites}
         renderItem={renderRecipeCard}
         keyExtractor={keyExtractor}
-        contentContainerStyle={favorites.length === 0 ? styles.emptyList : styles.list}
-        ListEmptyComponent={EmptyState}
+        contentContainerStyle={filteredFavorites.length === 0 ? styles.emptyList : styles.list}
+        ListEmptyComponent={searchQuery ? (
+          <View style={styles.emptyContainer}>
+            <Ionicons name="search-outline" size={80} color={colors.textSecondary} />
+            <Text style={[styles.emptyTitle, { color: colors.text }]}>
+              {t.favorites.noResults}
+            </Text>
+            <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
+              {t.favorites.noResultsDescription}
+            </Text>
+          </View>
+        ) : EmptyState}
         removeClippedSubviews={true}
         maxToRenderPerBatch={10}
         updateCellsBatchingPeriod={50}
@@ -165,13 +225,30 @@ export default function FavoritesScreen() {
           loadFavorites(); // Обновляем список, если что-то изменилось
         }}
       />
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  searchContainer: {
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 8,
+  },
+  searchInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 12,
+    gap: 8,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: fontScale(14),
   },
   list: {
     padding: 16,
@@ -184,11 +261,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     marginBottom: 16,
     borderWidth: 1,
-    shadowColor: COLORS.purple.shadow,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 20,
-    elevation: 8,
     overflow: 'hidden',
   },
   blur: {
@@ -218,7 +290,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
   },
   recipeName: {
-    fontSize: 18,
+    fontSize: fontScale(18),
     fontWeight: '600',
     marginBottom: 6,
   },
@@ -234,10 +306,10 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   metaText: {
-    fontSize: 14,
+    fontSize: fontScale(14),
   },
   ingredientsPreview: {
-    fontSize: 12,
+    fontSize: fontScale(12),
     fontStyle: 'italic',
   },
   heartButton: {
@@ -250,14 +322,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 32,
   },
   emptyTitle: {
-    fontSize: 20,
+    fontSize: fontScale(20),
     fontWeight: '600',
     marginTop: 16,
     marginBottom: 8,
   },
   emptyText: {
-    fontSize: 16,
+    fontSize: fontScale(16),
     textAlign: 'center',
-    lineHeight: 22,
+    lineHeight: moderateScale(22),
   },
 });

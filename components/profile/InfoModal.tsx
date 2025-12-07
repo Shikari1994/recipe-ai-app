@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
+import { fontScale, scale, verticalScale, moderateScale, BORDER_RADIUS } from '@/utils/responsive';
 
 interface InfoModalProps {
   visible: boolean;
@@ -88,7 +89,7 @@ export function InfoModal({
                 {title}
               </Text>
               <TouchableOpacity onPress={onClose} style={styles.modalCloseButton}>
-                <Ionicons name="close" size={28} color={textColor} />
+                <Ionicons name="close" size={moderateScale(28)} color={textColor} />
               </TouchableOpacity>
             </View>
 
@@ -113,19 +114,14 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 60,
+    paddingHorizontal: scale(20),
+    paddingVertical: verticalScale(60),
   },
   modalCard: {
     width: '100%',
-    maxWidth: 400,
-    borderRadius: 24,
+    maxWidth: scale(400),
+    borderRadius: BORDER_RADIUS.xl,
     overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 20 },
-    shadowOpacity: 0.3,
-    shadowRadius: 30,
-    elevation: 20,
   },
   modalBlur: {
     ...StyleSheet.absoluteFillObject,
@@ -141,25 +137,25 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 24,
-    paddingVertical: 20,
+    paddingHorizontal: scale(24),
+    paddingVertical: verticalScale(20),
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(138, 43, 226, 0.3)',
   },
   modalTitleText: {
-    fontSize: 22,
+    fontSize: fontScale(22),
     fontWeight: '700',
     flex: 1,
   },
   modalCloseButton: {
-    padding: 4,
-    marginLeft: 16,
+    padding: scale(4),
+    marginLeft: scale(16),
   },
   modalBody: {
-    padding: 24,
+    padding: scale(24),
   },
   modalBodyText: {
-    fontSize: 16,
-    lineHeight: 24,
+    fontSize: fontScale(16),
+    lineHeight: moderateScale(24),
   },
 });

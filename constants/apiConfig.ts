@@ -1,9 +1,11 @@
 import Constants from 'expo-constants';
 
-// API конфигурация для OpenRouter
+// API конфигурация
 export const API_CONFIG = {
-  OPENROUTER_API_KEY: Constants.expoConfig?.extra?.openRouterApiKey || '',
-  OPENROUTER_BASE_URL: 'https://openrouter.ai/api/v1',
+  // URL Cloudflare Worker (замените на ваш после деплоя)
+  // Пример: 'https://recipe-ai-proxy.your-subdomain.workers.dev'
+  WORKER_URL: Constants.expoConfig?.extra?.workerUrl || 'https://your-worker-url.workers.dev',
+
   MODEL: 'google/gemini-2.5-flash-lite', // Gemini 2.5 Flash Lite для текстовых запросов
   // Для vision используем ту же модель 2.5 Flash Lite - она поддерживает изображения!
   VISION_MODEL: 'google/gemini-2.5-flash-lite',
@@ -16,22 +18,44 @@ export const API_CONFIG = {
 };
 
 // Системный промпт для AI (текстовый поиск)
-export const SYSTEM_PROMPT = (ingredients: string, preferencesText?: string) => {
-  let prompt = `Ты кулинарный помощник. У пользователя есть: ${ingredients}`;
+export const SYSTEM_PROMPT = (ingredients: string, preferencesText?: string, userLanguage?: string) => {
+  // Определяем язык для ответа на основе языка интерфейса
+  const languageInstruction = userLanguage === 'en'
+    ? 'IMPORTANT: Respond in English.'
+    : 'ВАЖНО: Отвечай на русском языке.';
+
+  let prompt = userLanguage === 'en'
+    ? `You are a cooking assistant. The user has: ${ingredients}`
+    : `Ты кулинарный помощник. У пользователя есть: ${ingredients}`;
 
   if (preferencesText) {
-    prompt += `\n\n🚨 КРИТИЧЕСКИ ВАЖНО - ОБЯЗАТЕЛЬНЫЕ ТРЕБОВАНИЯ:\n${preferencesText}\nЭти требования ДОЛЖНЫ быть учтены во ВСЕХ рецептах без исключений!`;
+    const criticalHeader = userLanguage === 'en'
+      ? '🚨 CRITICALLY IMPORTANT - MANDATORY REQUIREMENTS:'
+      : '🚨 КРИТИЧЕСКИ ВАЖНО - ОБЯЗАТЕЛЬНЫЕ ТРЕБОВАНИЯ:';
+    const requirementNote = userLanguage === 'en'
+      ? 'These requirements MUST be taken into account in ALL recipes without exceptions!'
+      : 'Эти требования ДОЛЖНЫ быть учтены во ВСЕХ рецептах без исключений!';
+
+    prompt += `\n\n${criticalHeader}\n${preferencesText}\n${requirementNote}`;
   }
 
-  return `${prompt}
+  const formatInstruction = userLanguage === 'en'
+    ? `IMPORTANT: The response must be strictly in the following format (without greeting):
 
-ВАЖНО: Ответ должен быть строго в следующем формате:
+### Recipe Name
+**Cooking time:** X minutes
+**Calories:** approximately Y kcal per serving
 
-[ПРИВЕТСТВИЕ]
-Короткое приветствие пользователя (1-2 предложения)
-[/ПРИВЕТСТВИЕ]
+**Steps:**
+1. First step
+2. Second step
+3. Third step
+...
 
-Затем для каждого рецепта (2-4 рецепта):
+---
+
+Suggest 2-4 simple and quick recipes. If some ingredients are missing, indicate them in the steps as optional. Be sure to indicate the approximate number of calories per serving.`
+    : `ВАЖНО: Ответ должен быть строго в следующем формате (без приветствия):
 
 ### Название рецепта
 **Время приготовления:** X минут
@@ -45,30 +69,56 @@ export const SYSTEM_PROMPT = (ingredients: string, preferencesText?: string) => 
 
 ---
 
-Предложи простые и быстрые рецепты. Если каких-то ингредиентов не хватает, укажи их в шагах как необязательные. Обязательно укажи примерное количество калорий на порцию.`;
+Предложи 2-4 простых и быстрых рецепта. Если каких-то ингредиентов не хватает, укажи их в шагах как необязательные. Обязательно укажи примерное количество калорий на порцию.`;
+
+  return `${prompt}\n\n${languageInstruction}\n\n${formatInstruction}`;
 };
 
 // Системный промпт для AI (поиск по изображению)
-export const IMAGE_SYSTEM_PROMPT = (additionalText?: string, preferencesText?: string) => {
-  let prompt = `Ты кулинарный помощник. Проанализируй изображение и определи, какие продукты или блюда на нем находятся.`;
+export const IMAGE_SYSTEM_PROMPT = (additionalText?: string, preferencesText?: string, userLanguage?: string) => {
+  const languageInstruction = userLanguage === 'en'
+    ? 'IMPORTANT: Respond in English.'
+    : 'ВАЖНО: Отвечай на русском языке.';
+
+  let prompt = userLanguage === 'en'
+    ? `You are a cooking assistant. Analyze the image and identify what products or dishes are in it.`
+    : `Ты кулинарный помощник. Проанализируй изображение и определи, какие продукты или блюда на нем находятся.`;
 
   if (additionalText) {
-    prompt += ` Дополнительная информация от пользователя: ${additionalText}`;
+    const additionalInfo = userLanguage === 'en'
+      ? ` Additional information from the user: ${additionalText}`
+      : ` Дополнительная информация от пользователя: ${additionalText}`;
+    prompt += additionalInfo;
   }
 
   if (preferencesText) {
-    prompt += `\n\n🚨 КРИТИЧЕСКИ ВАЖНО - ОБЯЗАТЕЛЬНЫЕ ТРЕБОВАНИЯ:\n${preferencesText}\nЭти требования ДОЛЖНЫ быть учтены во ВСЕХ рецептах без исключений!`;
+    const criticalHeader = userLanguage === 'en'
+      ? '🚨 CRITICALLY IMPORTANT - MANDATORY REQUIREMENTS:'
+      : '🚨 КРИТИЧЕСКИ ВАЖНО - ОБЯЗАТЕЛЬНЫЕ ТРЕБОВАНИЯ:';
+    const requirementNote = userLanguage === 'en'
+      ? 'These requirements MUST be taken into account in ALL recipes without exceptions!'
+      : 'Эти требования ДОЛЖНЫ быть учтены во ВСЕХ рецептах без исключений!';
+
+    prompt += `\n\n${criticalHeader}\n${preferencesText}\n${requirementNote}`;
   }
 
-  return `${prompt}
+  const formatInstruction = userLanguage === 'en'
+    ? `IMPORTANT: The response must be strictly in the following format (without greeting):
 
-ВАЖНО: Ответ должен быть строго в следующем формате:
+### Recipe Name
+**Cooking time:** X minutes
+**Calories:** approximately Y kcal per serving
 
-[ПРИВЕТСТВИЕ]
-Короткое приветствие, указывающее какие продукты ты видишь на изображении (1-2 предложения)
-[/ПРИВЕТСТВИЕ]
+**Steps:**
+1. First step
+2. Second step
+3. Third step
+...
 
-Затем для каждого рецепта (2-4 рецепта):
+---
+
+Suggest 2-4 simple and quick recipes based on the products you see in the image. If some ingredients are missing, indicate them in the steps as optional. Be sure to indicate the approximate number of calories per serving.`
+    : `ВАЖНО: Ответ должен быть строго в следующем формате (без приветствия):
 
 ### Название рецепта
 **Время приготовления:** X минут
@@ -82,5 +132,7 @@ export const IMAGE_SYSTEM_PROMPT = (additionalText?: string, preferencesText?: s
 
 ---
 
-Предложи простые и быстрые рецепты на основе продуктов, которые ты видишь на изображении. Если каких-то ингредиентов не хватает, укажи их в шагах как необязательные. Обязательно укажи примерное количество калорий на порцию.`;
+Предложи 2-4 простых и быстрых рецепта на основе продуктов, которые ты видишь на изображении. Если каких-то ингредиентов не хватает, укажи их в шагах как необязательные. Обязательно укажи примерное количество калорий на порцию.`;
+
+  return `${prompt}\n\n${languageInstruction}\n\n${formatInstruction}`;
 };

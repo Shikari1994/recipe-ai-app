@@ -1,2 +1,1 @@
-export { RecipeMetadata } from './RecipeMetadata';
-export { RecipeSteps } from './RecipeSteps';
+export { RecipeDetailView } from './RecipeDetailView';

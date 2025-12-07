@@ -1,1 +1,9 @@
 export { AnimatedMessage } from './AnimatedMessage';
+export { AIMessageBubble } from './AIMessageBubble';
+export { AITextMessageBubble } from './AITextMessageBubble';
+export { AnimatedDots } from './AnimatedDots';
+export { ChatDrawer } from './ChatDrawer';
+export { ChatHeader } from './ChatHeader';
+export { LoadingMessageBubble } from './LoadingMessageBubble';
+export { MessageInput } from './MessageInput';
+export { UserMessageBubble } from './UserMessageBubble';

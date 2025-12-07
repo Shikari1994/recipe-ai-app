@@ -1,24 +1,37 @@
-import { useState, useCallback, useRef } from 'react';
-import { Alert, ScrollView } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useState, useCallback, useRef, useEffect } from 'react';
+import { ScrollView } from 'react-native';
 import uuid from 'react-native-uuid';
-import { getRecipesFromAI, AIRecipe } from '@/utils/aiService';
+import { getRecipesFromAI } from '@/utils/aiService';
 import { saveAIRecipe } from '@/utils/storage';
+import { getChatById, addMessageToChat } from '@/utils/chatStorage';
+import type { AIRecipe, Message } from '@/types';
+import { useLanguage } from '@/utils/LanguageContext';
 
-export type Message = {
-  id: string;
-  text: string;
-  isUser: boolean;
-  image?: string;
-  timestamp: Date;
-  aiRecipes?: AIRecipe[];
-  isLoading?: boolean;
-};
-
-export function useChatMessages() {
+export function useChatMessages(activeChatId: string | null) {
   const [messages, setMessages] = useState<Message[]>([]);
+  const [selectedRecipe, setSelectedRecipe] = useState<AIRecipe | null>(null);
+  const [modalVisible, setModalVisible] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
-  const router = useRouter();
+  const { t, language } = useLanguage();
+
+  const loadMessages = useCallback(async () => {
+    if (!activeChatId) {
+      setMessages([]);
+      return;
+    }
+
+    const chat = await getChatById(activeChatId);
+    if (chat) {
+      setMessages(chat.messages);
+    } else {
+      setMessages([]);
+    }
+  }, [activeChatId]);
+
+  // Загрузка сообщений при смене активного чата
+  useEffect(() => {
+    loadMessages();
+  }, [loadMessages]);
 
   const scrollToBottom = useCallback(() => {
     setTimeout(() => {
@@ -29,6 +42,7 @@ export function useChatMessages() {
   const sendMessage = useCallback(
     async (inputText: string, selectedImage?: string) => {
       if (!inputText.trim() && !selectedImage) return;
+      if (!activeChatId) return;
 
       const userMessage: Message = {
         id: uuid.v4() as string,
@@ -39,23 +53,25 @@ export function useChatMessages() {
       };
 
       setMessages((prev) => [...prev, userMessage]);
+      await addMessageToChat(activeChatId, userMessage);
 
       // Добавляем сообщение "загрузка"
       const loadingMessage: Message = {
         id: uuid.v4() as string,
         text: selectedImage
-          ? 'Анализирую изображение и подбираю рецепты...'
-          : 'Думаю над рецептами...',
+          ? t.chat.thinkingWithImage
+          : t.chat.thinking,
         isUser: false,
         timestamp: new Date(),
         isLoading: true,
       };
       setMessages((prev) => [...prev, loadingMessage]);
 
-      // Запрашиваем рецепты от AI
+      // Запрашиваем рецепты от AI с учетом языка пользователя
       const result = await getRecipesFromAI(
         inputText.trim(),
-        selectedImage || undefined
+        selectedImage || undefined,
+        language
       );
 
       // Убираем сообщение "загрузка"
@@ -64,37 +80,40 @@ export function useChatMessages() {
       if (result.success) {
         const aiResponse: Message = {
           id: uuid.v4() as string,
-          text: result.greeting || '✨ Вот что я нашёл для тебя:',
+          text: t.chat.recipesFound,
           isUser: false,
           timestamp: new Date(),
           aiRecipes: result.recipes,
         };
         setMessages((prev) => [...prev, aiResponse]);
+        await addMessageToChat(activeChatId, aiResponse);
       } else {
         const errorResponse: Message = {
           id: uuid.v4() as string,
-          text: `😔 ${result.error || 'Произошла ошибка при получении рецептов'}`,
+          text: `😔 ${result.error || t.chat.error}`,
           isUser: false,
           timestamp: new Date(),
         };
         setMessages((prev) => [...prev, errorResponse]);
+        await addMessageToChat(activeChatId, errorResponse);
       }
     },
-    []
+    [activeChatId, t, language]
   );
 
   const handleRecipePress = useCallback(
     async (recipe: AIRecipe) => {
-      try {
-        await saveAIRecipe(recipe);
-        router.push(`/recipe/${recipe.id}`);
-      } catch (error) {
-        console.error('Error saving recipe:', error);
-        Alert.alert('Ошибка', 'Не удалось открыть рецепт');
-      }
+      await saveAIRecipe(recipe);
+      setSelectedRecipe(recipe);
+      setModalVisible(true);
     },
-    [router]
+    []
   );
+
+  const closeModal = useCallback(() => {
+    setModalVisible(false);
+    setSelectedRecipe(null);
+  }, []);
 
   return {
     messages,
@@ -102,5 +121,8 @@ export function useChatMessages() {
     scrollToBottom,
     sendMessage,
     handleRecipePress,
+    selectedRecipe,
+    modalVisible,
+    closeModal,
   };
 }

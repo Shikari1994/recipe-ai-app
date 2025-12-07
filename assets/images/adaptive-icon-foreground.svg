@@ -1,0 +1,76 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Plate gradient (white to light gray) -->
+    <linearGradient id="plateGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFFFFF;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#F5F5F5;stop-opacity:1" />
+    </linearGradient>
+
+    <!-- Food gradients -->
+    <linearGradient id="foodGradient1" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFD700;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FFA500;stop-opacity:1" />
+    </linearGradient>
+
+    <linearGradient id="foodGradient2" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#FF6B6B;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#EE5A52;stop-opacity:1" />
+    </linearGradient>
+
+    <linearGradient id="foodGradient3" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#4ECDC4;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#44A08D;stop-opacity:1" />
+    </linearGradient>
+
+    <!-- Shadow -->
+    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="8"/>
+      <feOffset dx="0" dy="6" result="offsetblur"/>
+      <feComponentTransfer>
+        <feFuncA type="linear" slope="0.25"/>
+      </feComponentTransfer>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Main emoji-style icon (centered for adaptive icon) -->
+  <g transform="translate(512, 512)" filter="url(#shadow)">
+
+    <!-- Plate (white circle) -->
+    <circle cx="0" cy="0" r="280" fill="url(#plateGradient)"/>
+
+    <!-- Plate rim (inner circle for depth) -->
+    <circle cx="0" cy="0" r="240" fill="none" stroke="#E8E8E8" stroke-width="3"/>
+
+    <!-- Food item 1 - Orange/yellow (top left) -->
+    <circle cx="-80" cy="-60" r="65" fill="url(#foodGradient1)"/>
+    <circle cx="-60" cy="-70" r="15" fill="#FFE44D" opacity="0.6"/>
+
+    <!-- Food item 2 - Red/tomato (top right) -->
+    <circle cx="70" cy="-50" r="60" fill="url(#foodGradient2)"/>
+    <ellipse cx="85" cy="-60" rx="12" ry="18" fill="#FF9999" opacity="0.5"/>
+
+    <!-- Food item 3 - Green/veggie (bottom left) -->
+    <circle cx="-70" cy="50" r="55" fill="url(#foodGradient3)"/>
+    <circle cx="-55" cy="40" r="12" fill="#7FDBCA" opacity="0.6"/>
+
+    <!-- Food item 4 - Yellow (bottom right) -->
+    <circle cx="80" cy="60" r="58" fill="url(#foodGradient1)"/>
+    <circle cx="90" cy="50" r="14" fill="#FFE44D" opacity="0.5"/>
+
+    <!-- Food item 5 - Center piece (bigger) -->
+    <circle cx="0" cy="0" r="70" fill="url(#foodGradient2)"/>
+    <circle cx="15" cy="-10" r="18" fill="#FF9999" opacity="0.6"/>
+
+  </g>
+
+  <!-- AI Sparkle -->
+  <g transform="translate(780, 244)">
+    <circle cx="0" cy="0" r="40" fill="#FFD700"/>
+    <circle cx="0" cy="0" r="35" fill="#FFFFFF"/>
+    <path d="M 0,-28 L 4,-9 L 22,-6 L 4,-3 L 0,16 L -4,-3 L -22,-6 L -4,-9 Z" fill="#FFD700"/>
+  </g>
+</svg>

@@ -3,7 +3,7 @@ import { Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useFavorites } from './useFavorites';
 import { saveAIRecipe } from '@/utils/storage';
-import type { AIRecipe } from '@/utils/aiService';
+import type { AIRecipe } from '@/types';
 
 /**
  * Централизованный хук для обработки действий с рецептами
