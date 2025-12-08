@@ -34,9 +34,12 @@ export function useChatMessages(activeChatId: string | null) {
   }, [loadMessages]);
 
   const scrollToBottom = useCallback(() => {
-    setTimeout(() => {
-      scrollViewRef.current?.scrollToEnd({ animated: true });
-    }, 100);
+    // Используем requestAnimationFrame для более плавной прокрутки
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        scrollViewRef.current?.scrollToEnd({ animated: true });
+      }, 150);
+    });
   }, []);
 
   const sendMessage = useCallback(
