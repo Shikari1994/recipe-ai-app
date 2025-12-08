@@ -159,7 +159,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: scale(8),
-    paddingVertical: verticalScale(8),
+    paddingVertical: verticalScale(6), // Уменьшено с 8 до 6
     gap: scale(8),
   },
   iconButton: {
@@ -176,8 +176,8 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     fontSize: fontScale(15),
-    maxHeight: verticalScale(80),
-    paddingVertical: verticalScale(8),
+    maxHeight: verticalScale(70), // Уменьшено с 80 до 70
+    paddingVertical: verticalScale(6), // Уменьшено с 8 до 6
   },
   sendButton: {
     width: scale(40),

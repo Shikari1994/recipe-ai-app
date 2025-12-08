@@ -95,7 +95,10 @@ export default function ChatScreen() {
   // Автопрокрутка при новых сообщениях
   useEffect(() => {
     if (messages.length > 0) {
-      scrollToBottom();
+      // Задержка для корректного рендеринга AI рецептов (карточки требуют времени)
+      setTimeout(() => {
+        scrollToBottom();
+      }, 300);
     }
   }, [messages.length, scrollToBottom]);
 
@@ -235,7 +238,7 @@ export default function ChatScreen() {
   const renderContent = () => {
     // Динамический отступ снизу с учетом клавиатуры
     const dynamicPaddingBottom = keyboardHeight > 0
-      ? keyboardHeight + verticalScale(70) // Клавиатура открыта: высота клавиатуры + высота инпута
+      ? keyboardHeight + verticalScale(80) // Клавиатура открыта: высота клавиатуры + высота инпута + отступ
       : (insets.bottom || 0) + SIZES.tabBarHeight + SPACING.xl + verticalScale(60); // Клавиатура закрыта
 
     return (
@@ -298,7 +301,7 @@ export default function ChatScreen() {
           pulseAnim={pulseAnim}
           bottom={
             keyboardHeight > 0
-              ? keyboardHeight + verticalScale(8)
+              ? keyboardHeight + verticalScale(16) // Больше отступ от клавиатуры
               : (insets.bottom || 0) + SIZES.tabBarHeight + SPACING.xl
           }
           onChangeText={setInputText}
