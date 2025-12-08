@@ -33,8 +33,8 @@ export function parseAIResponse(text: string): {
         recipes.push({
           id: `ai-${Date.now()}-${recipes.length}`,
           title: currentRecipe.title,
-          time: currentRecipe.time,
-          calories: currentRecipe.calories,
+          time: currentRecipe.time || '',
+          calories: currentRecipe.calories || '',
           steps: currentRecipe.steps || [],
         });
         currentRecipe = null;
@@ -52,8 +52,8 @@ export function parseAIResponse(text: string): {
         recipes.push({
           id: `ai-${Date.now()}-${recipes.length}`,
           title: currentRecipe.title,
-          time: currentRecipe.time,
-          calories: currentRecipe.calories,
+          time: currentRecipe.time || '',
+          calories: currentRecipe.calories || '',
           steps: currentRecipe.steps || [],
         });
       }
@@ -107,8 +107,8 @@ export function parseAIResponse(text: string): {
     recipes.push({
       id: `ai-${Date.now()}-${recipes.length}`,
       title: currentRecipe.title,
-      time: currentRecipe.time,
-      calories: currentRecipe.calories,
+      time: currentRecipe.time || '',
+      calories: currentRecipe.calories || '',
       steps: currentRecipe.steps || [],
     });
   }

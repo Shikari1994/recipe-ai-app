@@ -1,4 +1,4 @@
-// require('dotenv').config(); // Временно отключено для тестирования
+require('dotenv').config(); // Загружаем переменные окружения
 
 module.exports = {
   expo: {
@@ -53,6 +53,7 @@ module.exports = {
       typedRoutes: true
     },
     extra: {
+      openRouterApiKey: process.env.OPENROUTER_API_KEY,
       workerUrl: 'https://recipe-ai-proxy.recipeai.workers.dev',
       eas: {
         projectId: "e578b835-08ae-4134-9a08-5a8830f77045"

@@ -23,7 +23,7 @@ export function useImagePicker(options: ImagePickerOptions = {}) {
   const [hasPermissions, setHasPermissions] = useState(false);
 
   const pickerOptions: ImagePicker.ImagePickerOptions = {
-    mediaTypes: ImagePicker.MediaTypeOptions.Images,
+    mediaTypes: ['images'],
     allowsEditing: options.allowsEditing ?? DEFAULT_OPTIONS.allowsEditing,
     aspect: options.aspect ?? DEFAULT_OPTIONS.aspect,
     quality: options.quality ?? DEFAULT_OPTIONS.quality,

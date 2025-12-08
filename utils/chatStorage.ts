@@ -137,13 +137,9 @@ export async function addMessageToChat(chatId: string, message: Message): Promis
 
 export async function deleteChat(chatId: string): Promise<void> {
   try {
-    console.log('Deleting chat:', chatId);
     const chats = await getAllChats();
-    console.log('Chats before delete:', chats.length);
     const filteredChats = chats.filter((chat) => chat.id !== chatId);
-    console.log('Chats after filter:', filteredChats.length);
     await saveAllChats(filteredChats);
-    console.log('Chats saved successfully');
 
     // Если удаляем активный чат, сбрасываем активный
     const activeId = await getActiveChat();

@@ -26,10 +26,12 @@ export async function convertImageToBase64(imageUri: string): Promise<string> {
 
     // Для мобильных платформ
     // Используем expo-image-manipulator для надежной конвертации
+    // Максимально уменьшаем размер для быстрой передачи через Worker
+    // 320px достаточно для распознавания продуктов
     const manipResult = await manipulateAsync(
       imageUri,
-      [{ resize: { width: 1024 } }], // Уменьшаем размер для экономии
-      { compress: 0.7, format: SaveFormat.JPEG, base64: true }
+      [{ resize: { width: 320 } }], // Маленький размер для минимального запроса
+      { compress: 0.6, format: SaveFormat.JPEG, base64: true }
     );
 
     if (!manipResult.base64) {

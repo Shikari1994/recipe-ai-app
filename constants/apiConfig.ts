@@ -2,18 +2,16 @@ import Constants from 'expo-constants';
 
 // API конфигурация
 export const API_CONFIG = {
-  // URL Cloudflare Worker (замените на ваш после деплоя)
-  // Пример: 'https://recipe-ai-proxy.your-subdomain.workers.dev'
-  WORKER_URL: Constants.expoConfig?.extra?.workerUrl || 'https://your-worker-url.workers.dev',
+  // Vercel Edge Function URL (после развертывания замените на ваш URL)
+  // Формат: https://your-project.vercel.app/api/openrouter-proxy
+  EDGE_FUNCTION_URL: 'https://your-project.vercel.app/api/openrouter-proxy',
 
-  MODEL: 'google/gemini-2.5-flash-lite', // Gemini 2.5 Flash Lite для текстовых запросов
-  // Для vision используем ту же модель 2.5 Flash Lite - она поддерживает изображения!
+  // Для локального тестирования используйте:
+  // EDGE_FUNCTION_URL: 'http://localhost:3000/api/openrouter-proxy',
+
+  MODEL: 'google/gemini-2.5-flash-lite',
   VISION_MODEL: 'google/gemini-2.5-flash-lite',
-  // Альтернативные модели vision:
-  // 'google/gemini-flash-1.5-8b' - Gemini 1.5 Flash 8B
-  // 'google/gemini-pro-vision' - более мощная, но платная
-  // 'openai/gpt-4o-mini' - альтернатива от OpenAI
-  MAX_TOKENS: 1000, // Ограничиваем для экономии
+  MAX_TOKENS: 1000,
   TEMPERATURE: 0.7,
 };
 

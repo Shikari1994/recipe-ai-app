@@ -23,7 +23,7 @@ type ImageContent = {
 type MessageContent = string | Array<TextContent | ImageContent>;
 
 /**
- * Отправляет запрос к AI через Cloudflare Worker
+ * Отправляет запрос к AI через Vercel Edge Function
  * @param ingredients - строка с перечислением продуктов (может быть пустой, если есть изображение)
  * @param imageUri - опциональный URI изображения для анализа
  * @param userLanguage - язык пользователя для ответа AI (ru или en)
@@ -97,25 +97,32 @@ export async function getRecipesFromAI(
     // Увеличиваем лимит токенов для vision запросов
     const maxTokens = imageUri ? 1500 : API_CONFIG.MAX_TOKENS;
 
-    // Отправляем запрос к Cloudflare Worker (вместо прямого запроса к OpenRouter)
+    // Увеличенный timeout для vision запросов (они обрабатываются дольше)
+    // Vision запросы могут обрабатываться очень долго, особенно при первом запросе
+    const requestTimeout = imageUri ? 180000 : 70000; // 180 сек (3 мин) для vision, 70 для текста
+
+    // Подготавливаем тело запроса
+    const requestBody = {
+      model: modelToUse,
+      messages: [
+        {
+          role: 'user',
+          content: messageContent,
+        },
+      ],
+      max_tokens: maxTokens,
+      temperature: API_CONFIG.TEMPERATURE,
+    };
+
+    // Отправляем запрос к Vercel Edge Function
     const response = await axios.post(
-      API_CONFIG.WORKER_URL, // URL вашего Cloudflare Worker
-      {
-        model: modelToUse,
-        messages: [
-          {
-            role: 'user',
-            content: messageContent,
-          },
-        ],
-        max_tokens: maxTokens,
-        temperature: API_CONFIG.TEMPERATURE,
-      },
+      API_CONFIG.EDGE_FUNCTION_URL,
+      requestBody,
       {
         headers: {
           'Content-Type': 'application/json',
         },
-        timeout: 45000, // 45 секунд для vision запросов
+        timeout: requestTimeout,
       }
     );
 
@@ -147,12 +154,37 @@ export async function getRecipesFromAI(
 
   } catch (error) {
     // Обработка различных типов ошибок
-    console.error('Error in getRecipesFromAI:', error);
+    console.error('❌ Error in getRecipesFromAI:', error);
+
+    // Обработка timeout ошибок
+    if (error instanceof Error && (error.message === 'Request timeout' || error.name === 'AbortError')) {
+      return {
+        success: false,
+        error: 'Запрос занял слишком много времени. Попробуйте упростить запрос или повторите позже.',
+      };
+    }
+
+    // Обработка сетевых ошибок
+    if (error instanceof Error && error.message === 'Network error') {
+      return {
+        success: false,
+        error: 'Нет связи с сервером. Проверьте интернет-соединение.',
+      };
+    }
 
     if (axios.isAxiosError(error)) {
+
       if (error.response) {
         // Сервер ответил с ошибкой
         console.error('API Response Error:', error.response.status, error.response.data);
+
+        // Специальная обработка для ошибки 504 (Gateway Timeout)
+        if (error.response.status === 504) {
+          return {
+            success: false,
+            error: 'Запрос занял слишком много времени. Попробуйте упростить запрос или повторите позже.',
+          };
+        }
 
         // Специальная обработка для ошибки 429 (Rate Limit)
         if (error.response.status === 429) {
@@ -177,6 +209,15 @@ export async function getRecipesFromAI(
       } else if (error.request) {
         // Запрос был отправлен, но ответа не получено
         console.error('No response from server:', error.request);
+
+        // Проверка на timeout
+        if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
+          return {
+            success: false,
+            error: 'Запрос занял слишком много времени. Попробуйте упростить запрос или повторите позже.',
+          };
+        }
+
         return {
           success: false,
           error: 'Нет связи с сервером. Проверьте интернет-соединение.',

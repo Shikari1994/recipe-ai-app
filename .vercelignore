@@ -1,0 +1,8 @@
+# Не включать в Vercel deploy
+node_modules/
+.expo/
+.expo-shared/
+android/
+ios/
+*.log
+.git/
