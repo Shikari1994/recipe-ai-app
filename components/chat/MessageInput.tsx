@@ -15,7 +15,6 @@ type MessageInputProps = {
   isRecording: boolean;
   speechError: string | null;
   pulseAnim: Animated.Value;
-  bottom: number;
   onChangeText: (text: string) => void;
   onSend: () => void;
   onImagePress: () => void;
@@ -31,7 +30,6 @@ export const MessageInput = React.memo(({
   isRecording,
   speechError,
   pulseAnim,
-  bottom,
   onChangeText,
   onSend,
   onImagePress,
@@ -42,7 +40,7 @@ export const MessageInput = React.memo(({
   const { t } = useLanguage();
 
   return (
-    <View style={[styles.inputContainerWrapper, { bottom }]}>
+    <View style={styles.inputContainerWrapper}>
       <View style={styles.inputContainer}>
         <BlurView
           intensity={60}
@@ -131,11 +129,8 @@ export const MessageInput = React.memo(({
 
 const styles = StyleSheet.create({
   inputContainerWrapper: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    zIndex: 10,
-    paddingHorizontal: scale(16),
+    // Убрали absolute positioning - теперь часть layout
+    width: '100%',
   },
   inputContainer: {
     borderRadius: moderateScale(25),

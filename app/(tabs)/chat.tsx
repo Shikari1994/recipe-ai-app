@@ -229,9 +229,6 @@ export default function ChatScreen() {
   }, [switchChat]);
 
   const renderContent = () => {
-    // Динамический отступ снизу - KeyboardAvoidingView управляет подъемом, поэтому не добавляем keyboardHeight
-    const dynamicPaddingBottom = (insets.bottom || 0) + SIZES.tabBarHeight + SPACING.xl + verticalScale(70);
-
     return (
       <KeyboardAvoidingView
         style={styles.container}
@@ -246,14 +243,13 @@ export default function ChatScreen() {
               styles.messagesContent,
               messages.length === 0 && styles.emptyMessagesContent,
               {
-                paddingTop: insets.top + verticalScale(8) + verticalScale(56) + SPACING.base, // Отступ под header + запас
-                paddingBottom: dynamicPaddingBottom,
+                paddingTop: insets.top + verticalScale(8) + verticalScale(56) + SPACING.base,
+                paddingBottom: SPACING.md,
               }
             ]}
             keyboardShouldPersistTaps="handled"
             keyboardDismissMode="interactive"
             onContentSizeChange={() => {
-              // Автоскролл при изменении размера контента (новые сообщения)
               scrollToBottom();
             }}
           >
@@ -287,21 +283,23 @@ export default function ChatScreen() {
           onMenuPress={() => setDrawerVisible(true)}
         />
 
-        <MessageInput
-          inputText={inputText}
-          selectedImage={selectedImage}
-          canSend={canSend}
-          isDark={isDark}
-          isRecording={isRecording}
-          speechError={speechError}
-          pulseAnim={pulseAnim}
-          bottom={(insets.bottom || 0) + SIZES.tabBarHeight + SPACING.xl}
-          onChangeText={setInputText}
-          onSend={handleSendMessage}
-          onImagePress={showImageOptions}
-          onClearImage={clearImage}
-          onMicrophonePress={handleMicrophonePress}
-        />
+        {/* MessageInput внизу как часть layout (не absolute) */}
+        <View style={[styles.inputWrapper, { paddingBottom: (insets.bottom || 0) + SIZES.tabBarHeight + SPACING.base }]}>
+          <MessageInput
+            inputText={inputText}
+            selectedImage={selectedImage}
+            canSend={canSend}
+            isDark={isDark}
+            isRecording={isRecording}
+            speechError={speechError}
+            pulseAnim={pulseAnim}
+            onChangeText={setInputText}
+            onSend={handleSendMessage}
+            onImagePress={showImageOptions}
+            onClearImage={clearImage}
+            onMicrophonePress={handleMicrophonePress}
+          />
+        </View>
         </View>
       </KeyboardAvoidingView>
     );
@@ -350,5 +348,8 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  inputWrapper: {
+    paddingHorizontal: SPACING.base,
   },
 });
