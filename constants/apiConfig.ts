@@ -2,9 +2,8 @@ import Constants from 'expo-constants';
 
 // API конфигурация
 export const API_CONFIG = {
-  // Vercel Edge Function URL (после развертывания замените на ваш URL)
-  // Формат: https://your-project.vercel.app/api/openrouter-proxy
-  EDGE_FUNCTION_URL: 'https://your-project.vercel.app/api/openrouter-proxy',
+  // Vercel Edge Function URL
+  EDGE_FUNCTION_URL: 'https://recipe-ai-app-puce.vercel.app/api/openrouter-proxy',
 
   // Для локального тестирования используйте:
   // EDGE_FUNCTION_URL: 'http://localhost:3000/api/openrouter-proxy',
