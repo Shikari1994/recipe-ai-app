@@ -7,7 +7,6 @@ import {
   ScrollView,
   Keyboard,
   Animated,
-  KeyboardAvoidingView,
 } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -230,78 +229,80 @@ export default function ChatScreen() {
 
   const renderContent = () => {
     return (
-      <KeyboardAvoidingView
-        style={styles.container}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top : 0}
-      >
-        <View style={styles.container}>
-          <ScrollView
-            ref={scrollViewRef}
-            style={styles.messagesContainer}
-            contentContainerStyle={[
-              styles.messagesContent,
-              messages.length === 0 && styles.emptyMessagesContent,
-              {
-                paddingTop: insets.top + verticalScale(8) + verticalScale(56) + SPACING.base,
-                paddingBottom: SPACING.md,
-              }
-            ]}
-            keyboardShouldPersistTaps="handled"
-            keyboardDismissMode="interactive"
-            onContentSizeChange={() => {
-              scrollToBottom();
-            }}
-          >
-          {messages.length === 0 && keyboardHeight === 0 && <WelcomeCard isDark={isDark} />}
+      <View style={styles.container}>
+        <ScrollView
+          ref={scrollViewRef}
+          style={styles.messagesContainer}
+          contentContainerStyle={[
+            styles.messagesContent,
+            messages.length === 0 && styles.emptyMessagesContent,
+            {
+              paddingTop: insets.top + verticalScale(8) + verticalScale(56) + SPACING.base,
+              paddingBottom: SPACING.md,
+            }
+          ]}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="interactive"
+          onContentSizeChange={() => {
+            scrollToBottom();
+          }}
+        >
+        {messages.length === 0 && keyboardHeight === 0 && <WelcomeCard isDark={isDark} />}
 
-          {messages.map((message, index) => (
-            <AnimatedMessage key={message.id} index={index}>
-              {message.isUser ? (
-                <UserMessageBubble text={message.text} image={message.image} />
-              ) : message.isLoading ? (
-                <LoadingMessageBubble text={message.text} />
-              ) : message.aiRecipes && message.aiRecipes.length > 0 ? (
-                <AIMessageBubble
-                  text={message.text}
-                  recipes={message.aiRecipes}
-                  isDark={isDark}
-                  onRecipePress={handleRecipePress}
-                />
-              ) : (
-                <AITextMessageBubble text={message.text} />
-              )}
-            </AnimatedMessage>
-          ))}
-        </ScrollView>
+        {messages.map((message, index) => (
+          <AnimatedMessage key={message.id} index={index}>
+            {message.isUser ? (
+              <UserMessageBubble text={message.text} image={message.image} />
+            ) : message.isLoading ? (
+              <LoadingMessageBubble text={message.text} />
+            ) : message.aiRecipes && message.aiRecipes.length > 0 ? (
+              <AIMessageBubble
+                text={message.text}
+                recipes={message.aiRecipes}
+                isDark={isDark}
+                onRecipePress={handleRecipePress}
+              />
+            ) : (
+              <AITextMessageBubble text={message.text} />
+            )}
+          </AnimatedMessage>
+        ))}
+      </ScrollView>
 
-        {/* Header поверх ScrollView с прозрачностью */}
-        <ChatHeader
-          title={activeChat?.title || t.chat.newChat}
+      {/* Header поверх ScrollView с прозрачностью */}
+      <ChatHeader
+        title={activeChat?.title || t.chat.newChat}
+        isDark={isDark}
+        topInset={insets.top}
+        onMenuPress={() => setDrawerVisible(true)}
+      />
+
+      {/* MessageInput внизу - позиционируется через marginBottom */}
+      <View style={[
+        styles.inputWrapper,
+        {
+          marginBottom: keyboardHeight > 0
+            ? keyboardHeight // Когда клавиатура открыта - поднимаем на высоту клавиатуры
+            : (insets.bottom || 0) + SIZES.tabBarHeight, // Когда закрыта - отступ для tab bar
+          paddingBottom: SPACING.base,
+        }
+      ]}>
+        <MessageInput
+          inputText={inputText}
+          selectedImage={selectedImage}
+          canSend={canSend}
           isDark={isDark}
-          topInset={insets.top}
-          onMenuPress={() => setDrawerVisible(true)}
+          isRecording={isRecording}
+          speechError={speechError}
+          pulseAnim={pulseAnim}
+          onChangeText={setInputText}
+          onSend={handleSendMessage}
+          onImagePress={showImageOptions}
+          onClearImage={clearImage}
+          onMicrophonePress={handleMicrophonePress}
         />
-
-        {/* MessageInput внизу как часть layout (не absolute) */}
-        <View style={[styles.inputWrapper, { paddingBottom: (insets.bottom || 0) + SIZES.tabBarHeight + SPACING.base }]}>
-          <MessageInput
-            inputText={inputText}
-            selectedImage={selectedImage}
-            canSend={canSend}
-            isDark={isDark}
-            isRecording={isRecording}
-            speechError={speechError}
-            pulseAnim={pulseAnim}
-            onChangeText={setInputText}
-            onSend={handleSendMessage}
-            onImagePress={showImageOptions}
-            onClearImage={clearImage}
-            onMicrophonePress={handleMicrophonePress}
-          />
-        </View>
-        </View>
-      </KeyboardAvoidingView>
+      </View>
+      </View>
     );
   };
 
