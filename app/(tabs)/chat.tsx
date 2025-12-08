@@ -7,6 +7,7 @@ import {
   ScrollView,
   Keyboard,
   Animated,
+  KeyboardAvoidingView,
 } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -228,30 +229,34 @@ export default function ChatScreen() {
   }, [switchChat]);
 
   const renderContent = () => {
-    // Динамический отступ снизу с учетом клавиатуры
-    const dynamicPaddingBottom = keyboardHeight > 0
-      ? keyboardHeight + verticalScale(90) // Клавиатура открыта: высота клавиатуры + высота инпута + отступ
-      : (insets.bottom || 0) + SIZES.tabBarHeight + SPACING.xl + verticalScale(60); // Клавиатура закрыта
+    // Динамический отступ снизу - KeyboardAvoidingView управляет подъемом, поэтому не добавляем keyboardHeight
+    const dynamicPaddingBottom = (insets.bottom || 0) + SIZES.tabBarHeight + SPACING.xl + verticalScale(70);
 
     return (
-      <View style={styles.container}>
-        <ScrollView
-          ref={scrollViewRef}
-          style={styles.messagesContainer}
-          contentContainerStyle={[
-            styles.messagesContent,
-            messages.length === 0 && styles.emptyMessagesContent,
-            {
-              paddingTop: insets.top + verticalScale(8) + verticalScale(56) + SPACING.base, // Отступ под header + запас
-              paddingBottom: dynamicPaddingBottom,
-            }
-          ]}
-          keyboardShouldPersistTaps="handled"
-          onContentSizeChange={() => {
-            // Автоскролл при изменении размера контента (новые сообщения)
-            scrollToBottom();
-          }}
-        >
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top : 0}
+      >
+        <View style={styles.container}>
+          <ScrollView
+            ref={scrollViewRef}
+            style={styles.messagesContainer}
+            contentContainerStyle={[
+              styles.messagesContent,
+              messages.length === 0 && styles.emptyMessagesContent,
+              {
+                paddingTop: insets.top + verticalScale(8) + verticalScale(56) + SPACING.base, // Отступ под header + запас
+                paddingBottom: dynamicPaddingBottom,
+              }
+            ]}
+            keyboardShouldPersistTaps="handled"
+            keyboardDismissMode="interactive"
+            onContentSizeChange={() => {
+              // Автоскролл при изменении размера контента (новые сообщения)
+              scrollToBottom();
+            }}
+          >
           {messages.length === 0 && keyboardHeight === 0 && <WelcomeCard isDark={isDark} />}
 
           {messages.map((message, index) => (
@@ -290,18 +295,15 @@ export default function ChatScreen() {
           isRecording={isRecording}
           speechError={speechError}
           pulseAnim={pulseAnim}
-          bottom={
-            keyboardHeight > 0
-              ? keyboardHeight + verticalScale(24) // Еще больше отступ от клавиатуры
-              : (insets.bottom || 0) + SIZES.tabBarHeight + SPACING.xl
-          }
+          bottom={(insets.bottom || 0) + SIZES.tabBarHeight + SPACING.xl}
           onChangeText={setInputText}
           onSend={handleSendMessage}
           onImagePress={showImageOptions}
           onClearImage={clearImage}
           onMicrophonePress={handleMicrophonePress}
         />
-      </View>
+        </View>
+      </KeyboardAvoidingView>
     );
   };
 
