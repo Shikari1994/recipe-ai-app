@@ -1,7 +1,12 @@
 import React from 'react';
 import { Platform } from 'react-native';
 import { BlurView as ExpoBlurView } from 'expo-blur';
-import { BlurView as CommunityBlurView } from '@react-native-community/blur';
+
+// Условный импорт только для Android
+let CommunityBlurView: any;
+if (Platform.OS === 'android') {
+  CommunityBlurView = require('@react-native-community/blur').BlurView;
+}
 
 type PlatformBlurProps = {
   intensity?: number;
@@ -22,7 +27,7 @@ export const PlatformBlur: React.FC<PlatformBlurProps> = ({
   children,
 }) => {
   // На Android используем @react-native-community/blur для лучшей поддержки
-  if (Platform.OS === 'android') {
+  if (Platform.OS === 'android' && CommunityBlurView) {
     // Конвертируем параметры expo-blur в параметры community-blur
     const blurType = tint === 'dark' ? 'dark' : tint === 'light' ? 'light' : 'xlight';
     const blurAmount = Math.min(100, intensity);
