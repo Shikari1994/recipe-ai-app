@@ -29,7 +29,6 @@ export default function ProfileScreen() {
   const { isDark, toggleTheme, colors } = useTheme();
   const { language, t } = useLanguage();
   const router = useRouter();
-  const [notifications, setNotifications] = useState(true);
   const [userName, setUserName] = useState(t.profile.username);
   const [modalVisible, setModalVisible] = useState(false);
   const [modalTitle, setModalTitle] = useState('');

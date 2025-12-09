@@ -16,20 +16,18 @@ import { getFavoriteRecipes, removeFromFavorites, getAIRecipesByIds } from '@/ut
 import type { AIRecipe } from '@/types';
 import { AIRecipeModal } from '@/components/AIRecipeModal';
 import { AIRecipeCard } from '@/components/AIRecipeCard';
-import { getThemeColors, COLORS } from '@/constants/colors';
+import { COLORS } from '@/constants/colors';
 import { fontScale, moderateScale, scale, verticalScale } from '@/utils/responsive';
 import { useRouter } from 'expo-router';
 
 export default function FavoritesScreen() {
   const { colors, isDark } = useTheme();
-  const { t, language } = useLanguage();
+  const { t } = useLanguage();
   const router = useRouter();
   const [favorites, setFavorites] = useState<AIRecipe[]>([]);
   const [selectedAIRecipe, setSelectedAIRecipe] = useState<AIRecipe | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-
-  const themeColors = useMemo(() => getThemeColors(isDark), [isDark]);
 
   // Фильтрация по поиску (только по названию)
   const filteredFavorites = useMemo(() => {
@@ -147,7 +145,7 @@ export default function FavoritesScreen() {
             <TextInput
               style={[styles.searchInput, { color: colors.text }]}
               placeholder={t.favorites.searchPlaceholder}
-              placeholderTextColor={themeColors.inputPlaceholder}
+              placeholderTextColor={colors.textSecondary}
               value={searchQuery}
               onChangeText={setSearchQuery}
             />

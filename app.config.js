@@ -25,6 +25,7 @@ module.exports = {
     },
     android: {
       package: "com.myapp.recipeai",
+      versionCode: 1,
       permissions: [
         "android.permission.CAMERA",
         "android.permission.READ_EXTERNAL_STORAGE",

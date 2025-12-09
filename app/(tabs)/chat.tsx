@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   View,
   StyleSheet,
@@ -7,7 +7,6 @@ import {
   ScrollView,
   Keyboard,
   Animated,
-  KeyboardAvoidingView,
   Text,
 } from 'react-native';
 import { BlurView } from 'expo-blur';
@@ -15,7 +14,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@/utils/ThemeContext';
 import { useLanguage } from '@/utils/LanguageContext';
 import { COLORS, getThemeColors } from '@/constants/colors';
-import { SPACING, SIZES } from '@/constants/ui';
+import { SPACING } from '@/constants/ui';
 
 import { AIRecipeModal } from '@/components/AIRecipeModal';
 import {
@@ -305,21 +304,18 @@ export default function ChatScreen() {
       />
 
       {/* MessageInput - абсолютное позиционирование */}
-      <View style={[
-        styles.inputWrapper,
-        {
-          position: 'absolute',
-          left: 0,
-          right: 0,
-          // На Android с режимом resize viewport уменьшается автоматически
-          // На iOS используем keyboardHeight для поднятия
-          bottom: Platform.OS === 'ios' && keyboardHeight > 0
-            ? keyboardHeight + SPACING.sm  // iOS: над клавиатурой
-            : (insets.bottom || SPACING.base),  // Обычный отступ от низа
-          paddingHorizontal: SPACING.base,
-          paddingBottom: SPACING.sm,
-        }
-      ]}>
+      <View style={{
+        position: 'absolute',
+        left: 0,
+        right: 0,
+        // На Android с режимом resize viewport уменьшается автоматически
+        // На iOS используем keyboardHeight для поднятия
+        bottom: Platform.OS === 'ios' && keyboardHeight > 0
+          ? keyboardHeight + SPACING.sm  // iOS: над клавиатурой
+          : (insets.bottom || SPACING.base),  // Обычный отступ от низа
+        paddingHorizontal: SPACING.base,
+        paddingBottom: SPACING.sm,
+      }}>
         <MessageInput
           inputText={inputText}
           selectedImage={selectedImage}
@@ -383,9 +379,6 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  inputWrapper: {
-    // Стили теперь инлайн в renderContent
   },
   welcomeContainer: {
     width: '100%',
