@@ -16,7 +16,8 @@ import { useTheme } from '@/utils/ThemeContext';
 import { useLanguage } from '@/utils/LanguageContext';
 import { BlurView } from 'expo-blur';
 import { PLATFORM } from '@/constants/ui';
-import { fontScale } from '@/utils/responsive';
+import { fontScale, scale, verticalScale, moderateScale } from '@/utils/responsive';
+import { useRouter } from 'expo-router';
 import { MultiSelectModal, ServingsSelector, WallpaperSelector } from '@/components/ui';
 import { SettingItem, ProfileHeader, InfoModal, LanguageModal } from '@/components/profile';
 import { getUserPreferences, saveUserPreferences, setWallpaper } from '@/utils/userPreferences';
@@ -27,6 +28,7 @@ import { LANGUAGES } from '@/constants/languages';
 export default function ProfileScreen() {
   const { isDark, toggleTheme, colors } = useTheme();
   const { language, t } = useLanguage();
+  const router = useRouter();
   const [notifications, setNotifications] = useState(true);
   const [userName, setUserName] = useState(t.profile.username);
   const [modalVisible, setModalVisible] = useState(false);
@@ -136,6 +138,24 @@ export default function ProfileScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
+      {/* Header с кнопкой Назад */}
+      <View style={[styles.header, { paddingTop: PLATFORM.safeArea.top }]}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => router.push('/(tabs)/chat')}
+        >
+          <Ionicons
+            name="arrow-back"
+            size={moderateScale(28)}
+            color={colors.text}
+          />
+        </TouchableOpacity>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>
+          {t.tabs.profile}
+        </Text>
+        <View style={{ width: scale(40) }} />
+      </View>
+
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
@@ -384,11 +404,30 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: scale(16),
+    paddingVertical: verticalScale(12),
+  },
+  backButton: {
+    width: scale(40),
+    height: scale(40),
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  headerTitle: {
+    fontSize: fontScale(20),
+    fontWeight: '600',
+    flex: 1,
+    textAlign: 'center',
+  },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
-    paddingTop: PLATFORM.contentPaddingTop,
+    paddingTop: verticalScale(16),
     paddingBottom: 140,
   },
   contentWrapper: {

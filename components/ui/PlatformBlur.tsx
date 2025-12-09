@@ -1,12 +1,5 @@
 import React from 'react';
-import { Platform } from 'react-native';
-import { BlurView as ExpoBlurView } from 'expo-blur';
-
-// Условный импорт только для Android
-let CommunityBlurView: any;
-if (Platform.OS === 'android') {
-  CommunityBlurView = require('@react-native-community/blur').BlurView;
-}
+import { BlurView } from 'expo-blur';
 
 type PlatformBlurProps = {
   intensity?: number;
@@ -16,9 +9,8 @@ type PlatformBlurProps = {
 };
 
 /**
- * Кроссплатформенный компонент размытия
- * iOS/Web: использует expo-blur (BlurView)
- * Android: использует @react-native-community/blur (BlurView) для лучшей поддержки
+ * Универсальный компонент размытия для всех платформ
+ * Использует expo-blur (BlurView) для iOS, Android и Web
  */
 export const PlatformBlur: React.FC<PlatformBlurProps> = ({
   intensity = 50,
@@ -26,34 +18,13 @@ export const PlatformBlur: React.FC<PlatformBlurProps> = ({
   style,
   children,
 }) => {
-  // На Android используем @react-native-community/blur для лучшей поддержки
-  if (Platform.OS === 'android' && CommunityBlurView) {
-    // Конвертируем параметры expo-blur в параметры community-blur
-    const blurType = tint === 'dark' ? 'dark' : tint === 'light' ? 'light' : 'xlight';
-    const blurAmount = Math.min(100, intensity);
-
-    return (
-      <CommunityBlurView
-        style={style}
-        blurType={blurType}
-        blurAmount={blurAmount}
-        reducedTransparencyFallbackColor={
-          tint === 'dark' ? 'rgba(20, 20, 25, 0.95)' : 'rgba(255, 255, 255, 0.95)'
-        }
-      >
-        {children}
-      </CommunityBlurView>
-    );
-  }
-
-  // На iOS и web используем expo-blur
   return (
-    <ExpoBlurView
+    <BlurView
       intensity={intensity}
       tint={tint}
       style={style}
     >
       {children}
-    </ExpoBlurView>
+    </BlurView>
   );
 };

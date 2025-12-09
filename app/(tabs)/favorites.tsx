@@ -17,11 +17,13 @@ import type { AIRecipe } from '@/types';
 import { AIRecipeModal } from '@/components/AIRecipeModal';
 import { AIRecipeCard } from '@/components/AIRecipeCard';
 import { getThemeColors, COLORS } from '@/constants/colors';
-import { fontScale, moderateScale } from '@/utils/responsive';
+import { fontScale, moderateScale, scale, verticalScale } from '@/utils/responsive';
+import { useRouter } from 'expo-router';
 
 export default function FavoritesScreen() {
   const { colors, isDark } = useTheme();
   const { t, language } = useLanguage();
+  const router = useRouter();
   const [favorites, setFavorites] = useState<AIRecipe[]>([]);
   const [selectedAIRecipe, setSelectedAIRecipe] = useState<AIRecipe | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
@@ -110,6 +112,24 @@ export default function FavoritesScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top', 'left', 'right']}>
+      {/* Header с кнопкой Назад */}
+      <View style={styles.header}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => router.push('/(tabs)/chat')}
+        >
+          <Ionicons
+            name="arrow-back"
+            size={moderateScale(28)}
+            color={colors.text}
+          />
+        </TouchableOpacity>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>
+          {t.tabs.favorites}
+        </Text>
+        <View style={{ width: scale(40) }} />
+      </View>
+
       {/* Поиск */}
       {favorites.length > 0 && (
         <View style={styles.searchContainer}>
@@ -184,6 +204,25 @@ export default function FavoritesScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: scale(16),
+    paddingVertical: verticalScale(12),
+  },
+  backButton: {
+    width: scale(40),
+    height: scale(40),
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  headerTitle: {
+    fontSize: fontScale(20),
+    fontWeight: '600',
+    flex: 1,
+    textAlign: 'center',
   },
   searchContainer: {
     paddingHorizontal: 16,

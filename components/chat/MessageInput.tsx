@@ -57,8 +57,8 @@ export const MessageInput = React.memo(({
             styles.inputOverlay,
             {
               backgroundColor: isDark
-                ? (Platform.OS === 'android' ? 'rgba(0, 0, 0, 0.7)' : 'rgba(0, 0, 0, 0.3)')
-                : (Platform.OS === 'android' ? 'rgba(255, 255, 255, 0.85)' : 'rgba(255, 255, 255, 0.3)')
+                ? (Platform.OS === 'android' ? 'rgba(0, 0, 0, 0.35)' : 'rgba(0, 0, 0, 0.3)')
+                : (Platform.OS === 'android' ? 'rgba(255, 255, 255, 0.7)' : 'rgba(255, 255, 255, 0.3)')
             }
           ]}
           pointerEvents="none"
@@ -153,13 +153,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: scale(8),
-    paddingVertical: verticalScale(6), // Уменьшено с 8 до 6
+    paddingVertical: verticalScale(4),
     gap: scale(8),
   },
   iconButton: {
-    width: scale(40),
-    height: scale(40),
-    borderRadius: moderateScale(20),
+    width: scale(36),
+    height: scale(36),
+    borderRadius: moderateScale(18),
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'rgba(138, 43, 226, 0.15)',
@@ -170,13 +170,13 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     fontSize: fontScale(15),
-    maxHeight: verticalScale(70), // Уменьшено с 80 до 70
-    paddingVertical: verticalScale(6), // Уменьшено с 8 до 6
+    maxHeight: verticalScale(60),
+    paddingVertical: verticalScale(4),
   },
   sendButton: {
-    width: scale(40),
-    height: scale(40),
-    borderRadius: moderateScale(20),
+    width: scale(36),
+    height: scale(36),
+    borderRadius: moderateScale(18),
     backgroundColor: COLORS.primary,
     justifyContent: 'center',
     alignItems: 'center',
@@ -186,8 +186,8 @@ const styles = StyleSheet.create({
   },
   selectedImageContainer: {
     position: 'relative',
-    width: scale(50),
-    height: scale(50),
+    width: scale(44),
+    height: scale(44),
   },
   selectedImage: {
     width: '100%',

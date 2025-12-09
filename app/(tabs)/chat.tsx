@@ -7,14 +7,15 @@ import {
   ScrollView,
   Keyboard,
   Animated,
+  KeyboardAvoidingView,
+  Text,
 } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@/utils/ThemeContext';
 import { useLanguage } from '@/utils/LanguageContext';
-import { COLORS } from '@/constants/colors';
+import { COLORS, getThemeColors } from '@/constants/colors';
 import { SPACING, SIZES } from '@/constants/ui';
-import { WelcomeCard } from '@/components/WelcomeCard';
 
 import { AIRecipeModal } from '@/components/AIRecipeModal';
 import {
@@ -29,16 +30,19 @@ import {
 } from '@/components/chat';
 import { useImagePicker, useChatMessages, useSpeechRecognition, useChats } from '@/hooks';
 
-import { verticalScale } from '@/utils/responsive';
+import { verticalScale, fontScale } from '@/utils/responsive';
 import { getUserPreferences } from '@/utils/userPreferences';
 import { WALLPAPERS, WallpaperConfig, getDefaultWallpaperId } from '@/constants/wallpapers';
 import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 
 export default function ChatScreen() {
   const { isDark } = useTheme();
   const { t } = useLanguage();
+  const themeColors = getThemeColors(isDark);
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   const [inputText, setInputText] = useState('');
   const [wallpaperConfig, setWallpaperConfig] = useState<WallpaperConfig | null>(null);
   const [keyboardHeight, setKeyboardHeight] = useState(0);
@@ -227,9 +231,21 @@ export default function ChatScreen() {
     await switchChat(chatId);
   }, [switchChat]);
 
+  const handleFavoritesPress = useCallback(() => {
+    router.push('/(tabs)/favorites');
+  }, [router]);
+
+  const handleProfilePress = useCallback(() => {
+    router.push('/(tabs)/profile');
+  }, [router]);
+
   const renderContent = () => {
+    // Высота области для input (примерно 60px для самого input + отступы)
+    const inputAreaHeight = verticalScale(70);
+
     return (
       <View style={styles.container}>
+        {/* ScrollView с сообщениями */}
         <ScrollView
           ref={scrollViewRef}
           style={styles.messagesContainer}
@@ -238,7 +254,8 @@ export default function ChatScreen() {
             messages.length === 0 && styles.emptyMessagesContent,
             {
               paddingTop: insets.top + verticalScale(8) + verticalScale(56) + SPACING.base,
-              paddingBottom: SPACING.md,
+              // Добавляем отступ снизу для input + bottom inset
+              paddingBottom: inputAreaHeight + (insets.bottom || SPACING.base) + SPACING.md,
             }
           ]}
           keyboardShouldPersistTaps="handled"
@@ -247,7 +264,16 @@ export default function ChatScreen() {
             scrollToBottom();
           }}
         >
-        {messages.length === 0 && keyboardHeight === 0 && <WelcomeCard isDark={isDark} />}
+        {messages.length === 0 && keyboardHeight === 0 && (
+          <View style={styles.welcomeContainer}>
+            <Text style={[styles.welcomeTitle, { color: themeColors.text }]}>
+              {t.welcome.title}
+            </Text>
+            <Text style={[styles.welcomeSubtitle, { color: themeColors.textSecondary }]}>
+              {t.welcome.subtitle}
+            </Text>
+          </View>
+        )}
 
         {messages.map((message, index) => (
           <AnimatedMessage key={message.id} index={index}>
@@ -269,22 +295,29 @@ export default function ChatScreen() {
         ))}
       </ScrollView>
 
-      {/* Header поверх ScrollView с прозрачностью */}
+      {/* Header поверх ScrollView */}
       <ChatHeader
         title={activeChat?.title || t.chat.newChat}
         isDark={isDark}
         topInset={insets.top}
         onMenuPress={() => setDrawerVisible(true)}
+        onFavoritesPress={handleFavoritesPress}
       />
 
-      {/* MessageInput внизу - позиционируется через marginBottom */}
+      {/* MessageInput - абсолютное позиционирование */}
       <View style={[
         styles.inputWrapper,
         {
-          marginBottom: keyboardHeight > 0
-            ? keyboardHeight // Когда клавиатура открыта - поднимаем на высоту клавиатуры
-            : (insets.bottom || 0) + SIZES.tabBarHeight, // Когда закрыта - отступ для tab bar
-          paddingBottom: SPACING.base,
+          position: 'absolute',
+          left: 0,
+          right: 0,
+          // На Android с режимом resize viewport уменьшается автоматически
+          // На iOS используем keyboardHeight для поднятия
+          bottom: Platform.OS === 'ios' && keyboardHeight > 0
+            ? keyboardHeight + SPACING.sm  // iOS: над клавиатурой
+            : (insets.bottom || SPACING.base),  // Обычный отступ от низа
+          paddingHorizontal: SPACING.base,
+          paddingBottom: SPACING.sm,
         }
       ]}>
         <MessageInput
@@ -322,6 +355,7 @@ export default function ChatScreen() {
         onChatSelect={handleSwitchChat}
         onNewChat={handleNewChat}
         onDeleteChat={handleDeleteChat}
+        onProfilePress={handleProfilePress}
         isDark={isDark}
       />
     </>
@@ -351,6 +385,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   inputWrapper: {
+    // Стили теперь инлайн в renderContent
+  },
+  welcomeContainer: {
+    width: '100%',
     paddingHorizontal: SPACING.base,
+    alignItems: 'flex-start',
+  },
+  welcomeTitle: {
+    fontSize: fontScale(28),
+    fontWeight: '600',
+    marginBottom: verticalScale(4),
+    lineHeight: fontScale(36),
+  },
+  welcomeSubtitle: {
+    fontSize: fontScale(28),
+    fontWeight: '400',
+    lineHeight: fontScale(36),
   },
 });

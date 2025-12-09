@@ -9,7 +9,7 @@ module.exports = {
     icon: "./assets/images/icon.png",
     scheme: "myapp",
     userInterfaceStyle: "automatic",
-    newArchEnabled: true,
+    newArchEnabled: false,
     backgroundColor: "#8A2BE2",
     splash: {
       image: "./assets/images/icon.png",
@@ -32,7 +32,7 @@ module.exports = {
         "android.permission.READ_MEDIA_IMAGES",
         "android.permission.RECORD_AUDIO"
       ],
-      softwareKeyboardLayoutMode: "pan",
+      softwareKeyboardLayoutMode: "resize",
       adaptiveIcon: {
         foregroundImage: "./assets/images/adaptive-icon-foreground.png",
         backgroundColor: "#8A2BE2"

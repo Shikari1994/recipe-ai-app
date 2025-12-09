@@ -2,8 +2,8 @@ import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/utils/ThemeContext';
 import { useLanguage } from '@/utils/LanguageContext';
-import { Platform, Dimensions, TouchableOpacity, Animated, StyleSheet } from 'react-native';
-import { BlurView } from 'expo-blur';
+import { Platform, Dimensions, TouchableOpacity, Animated, StyleSheet, View } from 'react-native';
+import { PlatformBlur } from '@/components/ui/PlatformBlur';
 import { COLORS } from '@/constants/colors';
 import React, { useEffect, useRef } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -86,44 +86,10 @@ export default function TabsLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: colors.primary,
-        tabBarInactiveTintColor: colors.textSecondary,
+        // Полностью скрываем tab bar
         tabBarStyle: {
-          position: 'absolute',
-          backgroundColor: isDark ? COLORS.background.dark : COLORS.background.light,
-          borderTopWidth: 0,
-          height: verticalScale(56),
-          paddingBottom: verticalScale(8),
-          paddingTop: verticalScale(8),
-          paddingHorizontal: scale(20),
-          marginHorizontal: marginHorizontal,
-          marginBottom: tabBarBottomMargin,
-          borderRadius: scale(30),
-          shadowColor: COLORS.shadow.black,
-          shadowOffset: { width: 0, height: verticalScale(10) },
-          shadowOpacity: 0.15,
-          shadowRadius: scale(20),
-          elevation: 10,
-          borderWidth: 1,
-          borderColor: isDark ? COLORS.purple.medium : COLORS.purple.light,
+          display: 'none',
         },
-        tabBarBackground: () => (
-          <BlurView
-            intensity={60}
-            tint={isDark ? 'dark' : 'light'}
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              borderRadius: 30,
-              overflow: 'hidden',
-            }}
-          />
-        ),
-        tabBarButton: (props) => <AnimatedTabBarButton {...props} />,
-        tabBarShowLabel: false,
       }}
     >
       <Tabs.Screen

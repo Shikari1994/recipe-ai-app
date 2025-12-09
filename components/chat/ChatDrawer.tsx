@@ -27,6 +27,7 @@ interface ChatDrawerProps {
   onChatSelect: (chatId: string) => void;
   onNewChat: () => void;
   onDeleteChat: (chatId: string) => void;
+  onProfilePress: () => void;
   isDark: boolean;
 }
 
@@ -38,6 +39,7 @@ export function ChatDrawer({
   onChatSelect,
   onNewChat,
   onDeleteChat,
+  onProfilePress,
   isDark,
 }: ChatDrawerProps) {
   const [searchQuery, setSearchQuery] = useState('');
@@ -318,6 +320,28 @@ export function ChatDrawer({
               </View>
             }
           />
+
+          {/* Кнопка настроек внизу */}
+          <TouchableOpacity
+            style={[
+              styles.profileButton,
+              { backgroundColor: isDark ? '#2a2a2a' : '#e5e5e5' }
+            ]}
+            onPress={() => {
+              onProfilePress();
+              onClose();
+            }}
+            activeOpacity={0.7}
+          >
+            <Ionicons
+              name="settings-outline"
+              size={moderateScale(24)}
+              color={COLORS.primary}
+            />
+            <Text style={[styles.profileButtonText, { color: isDark ? '#fff' : '#333' }]}>
+              {t.tabs.profile}
+            </Text>
+          </TouchableOpacity>
         </View>
       </View>
     </Modal>
@@ -457,5 +481,19 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: fontScale(16),
     marginTop: verticalScale(16),
+  },
+  profileButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginHorizontal: scale(20),
+    marginBottom: verticalScale(30),
+    paddingVertical: verticalScale(14),
+    borderRadius: BORDER_RADIUS.md,
+    gap: scale(10),
+  },
+  profileButtonText: {
+    fontSize: fontScale(16),
+    fontWeight: '600',
   },
 });

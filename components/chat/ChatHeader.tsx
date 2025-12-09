@@ -11,9 +11,10 @@ type ChatHeaderProps = {
   isDark: boolean;
   topInset: number;
   onMenuPress: () => void;
+  onFavoritesPress: () => void;
 };
 
-export const ChatHeader = React.memo(({ title, isDark, topInset, onMenuPress }: ChatHeaderProps) => {
+export const ChatHeader = React.memo(({ title, isDark, topInset, onMenuPress, onFavoritesPress }: ChatHeaderProps) => {
   return (
     <View
       style={[
@@ -37,8 +38,8 @@ export const ChatHeader = React.memo(({ title, isDark, topInset, onMenuPress }: 
         styles.headerOverlay,
         {
           backgroundColor: isDark
-            ? (Platform.OS === 'android' ? 'rgba(0, 0, 0, 0.7)' : 'rgba(0, 0, 0, 0.3)')
-            : (Platform.OS === 'android' ? 'rgba(255, 255, 255, 0.85)' : 'rgba(255, 255, 255, 0.3)')
+            ? (Platform.OS === 'android' ? 'rgba(0, 0, 0, 0.35)' : 'rgba(0, 0, 0, 0.3)')
+            : (Platform.OS === 'android' ? 'rgba(255, 255, 255, 0.7)' : 'rgba(255, 255, 255, 0.3)')
         }
       ]} />
 
@@ -64,7 +65,16 @@ export const ChatHeader = React.memo(({ title, isDark, topInset, onMenuPress }: 
           {title}
         </Text>
 
-        <View style={{ width: scale(40) }} />
+        <TouchableOpacity
+          style={styles.favoritesButton}
+          onPress={onFavoritesPress}
+        >
+          <Ionicons
+            name="heart"
+            size={moderateScale(26)}
+            color={COLORS.primary}
+          />
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -98,6 +108,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: scale(16),
   },
   menuButton: {
+    width: scale(40),
+    height: scale(40),
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  favoritesButton: {
     width: scale(40),
     height: scale(40),
     justifyContent: 'center',
