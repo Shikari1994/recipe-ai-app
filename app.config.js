@@ -3,7 +3,7 @@ require('dotenv').config(); // Загружаем переменные окру�
 module.exports = {
   expo: {
     name: "AI Recipe Assistant",
-    slug: "ai-recipe-assistant",
+    slug: "Myapp",
     version: "1.0.0",
     orientation: "portrait",
     icon: "./assets/images/icon.png",
@@ -41,6 +41,7 @@ module.exports = {
     plugins: [
       "expo-router",
       "expo-font",
+      "expo-web-browser",
       [
         "expo-speech-recognition",
         {

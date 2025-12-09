@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, TextInput, TouchableOpacity, Image, StyleSheet, Animated, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { BlurView } from 'expo-blur';
+import { PlatformBlur } from '@/components/ui/PlatformBlur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { COLORS, getThemeColors } from '@/constants/colors';
 import { scale, verticalScale, fontScale, moderateScale } from '@/utils/responsive';
@@ -42,11 +42,10 @@ export const MessageInput = React.memo(({
   return (
     <View style={styles.inputContainerWrapper}>
       <View style={styles.inputContainer}>
-        <BlurView
+        <PlatformBlur
           intensity={60}
           tint={isDark ? 'dark' : 'light'}
           style={styles.inputBlur}
-          pointerEvents="none"
         />
         <LinearGradient
           colors={isDark ? COLORS.gradient.purple.dark : COLORS.gradient.purple.light}

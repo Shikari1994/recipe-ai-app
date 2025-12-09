@@ -1,46 +1,83 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useRef } from 'react';
 import { View, Text, StyleSheet, Animated, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
-import { BlurView } from 'expo-blur';
 import type { AIRecipe } from '@/types';
 import { COLORS, getThemeColors } from '@/constants/colors';
 import { scale, verticalScale, fontScale, moderateScale, BORDER_RADIUS } from '@/utils/responsive';
 import { extractTime, extractCalories } from '@/utils/recipeHelpers';
 
-type BounceIconProps = {
-  name: keyof typeof Ionicons.glyphMap;
-  size: number;
-  color: string;
-  delay: number;
+// Эмодзи для рецептов по типу блюда (копия из AIMessageBubble)
+const getRecipeEmoji = (title: string): string => {
+  const lowerTitle = title.toLowerCase();
+
+  // Яйца и омлеты
+  if (lowerTitle.includes('яичниц') || lowerTitle.includes('омлет') || lowerTitle.includes('глазунь')) return '🍳';
+  if (lowerTitle.includes('яйц') && (lowerTitle.includes('варен') || lowerTitle.includes('пашот'))) return '🥚';
+
+  // Салаты
+  if (lowerTitle.includes('салат')) return '🥗';
+
+  // Супы
+  if (lowerTitle.includes('суп') || lowerTitle.includes('борщ') || lowerTitle.includes('щи') ||
+      lowerTitle.includes('солянк') || lowerTitle.includes('уха') || lowerTitle.includes('бульон')) return '🍲';
+
+  // Паста и макароны
+  if (lowerTitle.includes('паста') || lowerTitle.includes('макарон') || lowerTitle.includes('спагетти') ||
+      lowerTitle.includes('лазань') || lowerTitle.includes('карбонар')) return '🍝';
+
+  // Блины и оладьи
+  if (lowerTitle.includes('блин') || lowerTitle.includes('оладь') || lowerTitle.includes('сырник')) return '🥞';
+
+  // Каши
+  if (lowerTitle.includes('каша') || lowerTitle.includes('овсянк')) return '🥣';
+
+  // Азиатская кухня
+  if (lowerTitle.includes('лапша') || lowerTitle.includes('рамен') || lowerTitle.includes('фо')) return '🍜';
+  if (lowerTitle.includes('суши') || lowerTitle.includes('ролл')) return '🍣';
+  if (lowerTitle.includes('рис') || lowerTitle.includes('плов')) return '🍚';
+
+  // Мясные блюда
+  if (lowerTitle.includes('стейк') || lowerTitle.includes('бифштекс')) return '🥩';
+  if (lowerTitle.includes('курин') || lowerTitle.includes('курица') || lowerTitle.includes('куриц') ||
+      lowerTitle.includes('цыплен') || lowerTitle.includes('крыл')) return '🍗';
+  if (lowerTitle.includes('шашлык') || lowerTitle.includes('кебаб') || lowerTitle.includes('гриль')) return '🍖';
+  if (lowerTitle.includes('котлет') || lowerTitle.includes('фрикадель') || lowerTitle.includes('тефтел')) return '🍔';
+
+  // Рыба и морепродукты
+  if (lowerTitle.includes('рыб') || lowerTitle.includes('лосось') || lowerTitle.includes('форель') ||
+      lowerTitle.includes('сёмг') || lowerTitle.includes('семг') || lowerTitle.includes('треск')) return '🐟';
+  if (lowerTitle.includes('креветк') || lowerTitle.includes('морепродукт')) return '🦐';
+
+  // Выпечка и десерты
+  if (lowerTitle.includes('пирог') || lowerTitle.includes('пирож') || lowerTitle.includes('запеканк')) return '🥧';
+  if (lowerTitle.includes('торт') || lowerTitle.includes('кекс') || lowerTitle.includes('маффин')) return '🎂';
+  if (lowerTitle.includes('печень') || lowerTitle.includes('круассан')) return '🥐';
+  if (lowerTitle.includes('хлеб') || lowerTitle.includes('тост') || lowerTitle.includes('бутерброд') ||
+      lowerTitle.includes('сэндвич') || lowerTitle.includes('брускет')) return '🍞';
+
+  // Пицца
+  if (lowerTitle.includes('пицц')) return '🍕';
+
+  // Бургеры
+  if (lowerTitle.includes('бургер') || lowerTitle.includes('гамбургер')) return '🍔';
+
+  // Тако и буррито
+  if (lowerTitle.includes('тако') || lowerTitle.includes('буррит') || lowerTitle.includes('начос')) return '🌮';
+
+  // Овощные блюда
+  if (lowerTitle.includes('овощ') || lowerTitle.includes('рагу') || lowerTitle.includes('тушен')) return '🥘';
+  if (lowerTitle.includes('картоф') || lowerTitle.includes('картошк') || lowerTitle.includes('пюре')) return '🥔';
+
+  // Фрукты и сладкое
+  if (lowerTitle.includes('смузи') || lowerTitle.includes('коктейль')) return '🥤';
+  if (lowerTitle.includes('мороженое') || lowerTitle.includes('десерт')) return '🍨';
+
+  // Закуски
+  if (lowerTitle.includes('закуск') || lowerTitle.includes('канапе')) return '🍢';
+
+  // Дефолтная иконка - тарелка с едой
+  return '🍽️';
 };
-
-const BounceIcon = React.memo(({ name, size, color, delay }: BounceIconProps) => {
-  const bounceAnim = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      Animated.spring(bounceAnim, {
-        toValue: 1,
-        tension: 300,
-        friction: 5,
-        useNativeDriver: true,
-      }).start();
-    }, delay);
-    return () => clearTimeout(timer);
-  }, [bounceAnim, delay]);
-
-  const scaleValue = bounceAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, 1],
-  });
-
-  return (
-    <Animated.View style={{ transform: [{ scale: scaleValue }] }}>
-      <Ionicons name={name} size={size} color={color} />
-    </Animated.View>
-  );
-});
 
 type AIRecipeCardProps = {
   recipe: AIRecipe;
@@ -51,10 +88,11 @@ type AIRecipeCardProps = {
 export const AIRecipeCard = React.memo(({ recipe, isDark, onPress }: AIRecipeCardProps) => {
   const themeColors = getThemeColors(isDark);
   const scaleAnim = useRef(new Animated.Value(1)).current;
+  const emoji = getRecipeEmoji(recipe.title);
 
   const handlePressIn = () => {
     Animated.spring(scaleAnim, {
-      toValue: 0.97,
+      toValue: 0.96,
       useNativeDriver: true,
       tension: 300,
       friction: 10,
@@ -70,61 +108,53 @@ export const AIRecipeCard = React.memo(({ recipe, isDark, onPress }: AIRecipeCar
     }).start();
   };
 
+  // Цвета карточки в зависимости от темы (как в чате)
+  const cardBgColor = isDark ? 'rgba(45, 45, 55, 0.95)' : 'rgba(255, 255, 255, 0.95)';
+  const emojiCircleBgColor = isDark ? 'rgba(139, 92, 246, 0.2)' : '#F3F0FF';
+
   return (
-    <Pressable
-      onPress={onPress}
-      onPressIn={handlePressIn}
-      onPressOut={handlePressOut}
-    >
+    <Pressable onPress={onPress} onPressIn={handlePressIn} onPressOut={handlePressOut}>
       <Animated.View style={[
         styles.card,
         {
-          borderWidth: 1,
-          borderColor: isDark
-            ? 'rgba(167, 139, 250, 0.4)'
-            : 'rgba(138, 43, 226, 0.3)',
+          backgroundColor: cardBgColor,
           transform: [{ scale: scaleAnim }],
+          borderWidth: isDark ? 1 : 0,
+          borderColor: isDark ? 'rgba(139, 92, 246, 0.3)' : 'transparent',
         }
       ]}>
-        <BlurView
-          intensity={isDark ? 70 : 50}
-          tint={isDark ? 'dark' : 'light'}
-          style={styles.blur}
-        />
-        <LinearGradient
-          colors={isDark ? COLORS.gradient.purple.dark : COLORS.gradient.purple.light}
-          style={styles.gradient}
-        />
+        {/* Иконка эмодзи */}
+        <View style={styles.emojiContainer}>
+          <View style={[styles.emojiCircle, { backgroundColor: emojiCircleBgColor }]}>
+            <Text style={styles.emoji}>{emoji}</Text>
+          </View>
+        </View>
 
-        <View style={styles.content}>
-          <Text style={[styles.name, { color: themeColors.text }]} numberOfLines={2} ellipsizeMode="tail">
+        {/* Контент карточки */}
+        <View style={styles.cardContent}>
+          <Text style={[styles.name, { color: themeColors.text }]} numberOfLines={2}>
             {recipe.title}
           </Text>
 
+          {/* Мета информация */}
           <View style={styles.metaRow}>
             <View style={styles.metaItem}>
-              <BounceIcon name="time-outline" size={moderateScale(14)} color={themeColors.textSecondary} delay={100} />
-              <Text style={[styles.metaText, { color: themeColors.textSecondary }]}>
-                {extractTime(recipe.time)}
+              <Ionicons name="time-outline" size={moderateScale(14)} color={isDark ? '#A78BFA' : themeColors.textSecondary} />
+              <Text style={[styles.metaText, { color: isDark ? '#A78BFA' : themeColors.textSecondary }]}>
+                {extractTime(recipe.time)} мин
               </Text>
             </View>
 
-            <Text style={[styles.separator, { color: themeColors.textSecondary }]}>•</Text>
-
             <View style={styles.metaItem}>
-              <BounceIcon name="flame-outline" size={moderateScale(14)} color={themeColors.textSecondary} delay={200} />
-              <Text style={[styles.metaText, { color: themeColors.textSecondary }]}>
+              <Ionicons name="flame" size={moderateScale(14)} color="#FF9500" />
+              <Text style={[styles.metaText, { color: isDark ? '#FFB347' : themeColors.textSecondary }]}>
                 {extractCalories(recipe.calories)}
               </Text>
             </View>
 
-            <Text style={[styles.separator, { color: themeColors.textSecondary }]}>•</Text>
-
-            <View style={styles.metaItem}>
-              <BounceIcon name="list-outline" size={moderateScale(14)} color={themeColors.textSecondary} delay={300} />
-              <Text style={[styles.metaText, { color: themeColors.textSecondary }]}>
-                {recipe.steps.length}
-              </Text>
+            <View style={[styles.stepsButton, { backgroundColor: '#FF9500' }]}>
+              <Ionicons name="list" size={moderateScale(12)} color="#fff" />
+              <Text style={styles.stepsText}>{recipe.steps.length}</Text>
             </View>
           </View>
         </View>
@@ -136,31 +166,42 @@ export const AIRecipeCard = React.memo(({ recipe, isDark, onPress }: AIRecipeCar
 const styles = StyleSheet.create({
   card: {
     width: '100%',
-    borderRadius: BORDER_RADIUS.md,
-    overflow: 'hidden',
-  },
-  blur: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  gradient: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  content: {
+    borderRadius: BORDER_RADIUS.lg,
     padding: scale(12),
+    flexDirection: 'row',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  emojiContainer: {
+    marginRight: scale(12),
+  },
+  emojiCircle: {
+    width: scale(48),
+    height: scale(48),
+    borderRadius: scale(24),
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  emoji: {
+    fontSize: fontScale(24),
+  },
+  cardContent: {
+    flex: 1,
   },
   name: {
-    fontSize: fontScale(14),
-    fontWeight: '500',
+    fontSize: fontScale(15),
+    fontWeight: '600',
     lineHeight: moderateScale(20),
-    marginBottom: verticalScale(10),
+    marginBottom: verticalScale(8),
   },
   metaRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingTop: verticalScale(10),
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(138, 43, 226, 0.25)',
+    gap: scale(12),
   },
   metaItem: {
     flexDirection: 'row',
@@ -169,11 +210,19 @@ const styles = StyleSheet.create({
   },
   metaText: {
     fontSize: fontScale(12),
-    fontWeight: '600',
+    fontWeight: '500',
   },
-  separator: {
-    fontSize: fontScale(10),
-    marginHorizontal: scale(10),
-    opacity: 0.5,
+  stepsButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: scale(4),
+    paddingHorizontal: scale(8),
+    paddingVertical: scale(4),
+    borderRadius: scale(12),
+  },
+  stepsText: {
+    color: '#fff',
+    fontSize: fontScale(12),
+    fontWeight: '700',
   },
 });

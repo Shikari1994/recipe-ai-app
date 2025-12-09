@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, Pressable, Animated } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { BlurView } from 'expo-blur';
+import { PlatformBlur } from '@/components/ui/PlatformBlur';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, getThemeColors } from '@/constants/colors';
 import { scale, verticalScale, fontScale, moderateScale, BORDER_RADIUS } from '@/utils/responsive';
@@ -190,7 +190,7 @@ export const AIMessageBubble = React.memo(({ text, recipes, isDark, onRecipePres
 
       {/* Облако сообщения */}
       <View style={styles.bubbleContainer}>
-        <BlurView
+        <PlatformBlur
           intensity={isDark ? 40 : 30}
           tint={isDark ? 'dark' : 'light'}
           style={styles.blur}

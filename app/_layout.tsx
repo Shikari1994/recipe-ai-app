@@ -7,6 +7,8 @@ import { useFonts, Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_7
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import { Text, TextInput } from 'react-native';
+import { PaperProvider } from 'react-native-paper';
+import { customDarkTheme, customLightTheme } from '@/constants/paperTheme';
 
 // Предотвращаем автоскрытие splash screen
 SplashScreen.preventAutoHideAsync();
@@ -43,9 +45,10 @@ const originalTextInputRender = (TextInput as any).render;
 
 function RootLayoutContent() {
   const { colors, isDark } = useTheme();
+  const paperTheme = isDark ? customDarkTheme : customLightTheme;
 
   return (
-    <>
+    <PaperProvider theme={paperTheme}>
       <StatusBar style={isDark ? 'light' : 'dark'} />
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="(tabs)" />
@@ -56,7 +59,7 @@ function RootLayoutContent() {
           }}
         />
       </Stack>
-    </>
+    </PaperProvider>
   );
 }
 

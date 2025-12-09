@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { BlurView } from 'expo-blur';
+import { PlatformBlur } from '@/components/ui/PlatformBlur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { COLORS } from '@/constants/colors';
 import { scale, verticalScale, fontScale, moderateScale } from '@/utils/responsive';
@@ -24,7 +24,7 @@ export const ChatHeader = React.memo(({ title, isDark, topInset, onMenuPress }: 
       ]}
       pointerEvents="box-none"
     >
-      <BlurView
+      <PlatformBlur
         intensity={60}
         tint={isDark ? 'dark' : 'light'}
         style={styles.headerBlur}

@@ -15,10 +15,8 @@ import { useLanguage } from '@/utils/LanguageContext';
 import { getFavoriteRecipes, removeFromFavorites, getAIRecipesByIds } from '@/utils/storage';
 import type { AIRecipe } from '@/types';
 import { AIRecipeModal } from '@/components/AIRecipeModal';
+import { AIRecipeCard } from '@/components/AIRecipeCard';
 import { getThemeColors, COLORS } from '@/constants/colors';
-import { getPlural } from '@/utils/plurals';
-import { BlurView } from 'expo-blur';
-import { LinearGradient } from 'expo-linear-gradient';
 import { fontScale, moderateScale } from '@/utils/responsive';
 
 export default function FavoritesScreen() {
@@ -68,79 +66,33 @@ export default function FavoritesScreen() {
   }, []);
 
   const renderRecipeCard = useCallback(({ item }: { item: AIRecipe }) => {
-
     return (
-      <TouchableOpacity
-        style={[
-          styles.card,
-          {
-            borderColor: isDark ? COLORS.purple.medium : COLORS.purple.light,
-          },
-        ]}
-        onPress={() => openRecipe(item)}
-        activeOpacity={0.8}
-      >
-        <BlurView
-          intensity={60}
-          tint={isDark ? 'dark' : 'light'}
-          style={styles.blur}
+      <View style={styles.cardWrapper}>
+        <AIRecipeCard
+          recipe={item}
+          isDark={isDark}
+          onPress={() => openRecipe(item)}
         />
-        <LinearGradient
-          colors={isDark ? COLORS.gradient.purple.dark : COLORS.gradient.purple.light}
-          style={styles.gradient}
-        />
-        <View style={styles.cardContent}>
-          <View style={styles.imagePlaceholder}>
-            <Ionicons
-              name="sparkles"
-              size={40}
-              color={COLORS.primary}
-            />
-          </View>
-
-          <View style={styles.cardInfo}>
-            <Text style={[styles.recipeName, { color: colors.text }]} numberOfLines={2}>
-              {item.title}
-            </Text>
-
-            <View style={styles.metaContainer}>
-              <View style={styles.metaItem}>
-                <Ionicons name="time-outline" size={16} color={colors.textSecondary} />
-                <Text style={[styles.metaText, { color: colors.textSecondary }]}>
-                  {item.time}
-                </Text>
-              </View>
-              {item.calories && (
-                <View style={styles.metaItem}>
-                  <Ionicons name="flame-outline" size={16} color={colors.textSecondary} />
-                  <Text style={[styles.metaText, { color: colors.textSecondary }]}>
-                    {item.calories}
-                  </Text>
-                </View>
-              )}
-              <View style={styles.metaItem}>
-                <Ionicons name="sparkles" size={16} color={COLORS.primary} />
-                <Text style={[styles.metaText, { color: COLORS.primary }]}>
-                  {t.favorites.aiRecipe}
-                </Text>
-              </View>
-            </View>
-
-            <Text style={[styles.ingredientsPreview, { color: themeColors.textMuted }]} numberOfLines={1}>
-              {item.steps.length} {getPlural(item.steps.length, language, t.favorites)} {t.favorites.cooking}
-            </Text>
-          </View>
-
-          <TouchableOpacity
-            style={styles.heartButton}
-            onPress={() => handleRemoveFromFavorites(item.id)}
-          >
-            <Ionicons name="heart" size={24} color={COLORS.primary} />
-          </TouchableOpacity>
-        </View>
-      </TouchableOpacity>
+        <TouchableOpacity
+          style={[
+            styles.heartButton,
+            {
+              backgroundColor: isDark
+                ? 'rgba(20, 20, 25, 0.9)'
+                : 'rgba(255, 255, 255, 0.9)',
+              borderWidth: 1,
+              borderColor: isDark
+                ? 'rgba(138, 43, 226, 0.3)'
+                : 'rgba(138, 43, 226, 0.2)',
+            }
+          ]}
+          onPress={() => handleRemoveFromFavorites(item.id)}
+        >
+          <Ionicons name="heart" size={20} color={COLORS.primary} />
+        </TouchableOpacity>
+      </View>
     );
-  }, [colors, isDark, themeColors, openRecipe, handleRemoveFromFavorites, t, language]);
+  }, [isDark, openRecipe, handleRemoveFromFavorites]);
 
   const EmptyState = useMemo(() => (
     <View style={styles.emptyContainer}>
@@ -252,68 +204,25 @@ const styles = StyleSheet.create({
   },
   list: {
     padding: 16,
+    gap: 12,
   },
   emptyList: {
     flex: 1,
   },
-  card: {
+  cardWrapper: {
     position: 'relative',
-    borderRadius: 12,
-    marginBottom: 16,
-    borderWidth: 1,
-    overflow: 'hidden',
-  },
-  blur: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  gradient: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  cardContent: {
-    position: 'relative',
-    zIndex: 1,
-    flexDirection: 'row',
-    padding: 12,
-  },
-  imagePlaceholder: {
-    width: 80,
-    height: 80,
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(138, 43, 226, 0.1)',
-  },
-  cardInfo: {
-    flex: 1,
-    marginLeft: 12,
-    flexDirection: 'column',
-    justifyContent: 'flex-start',
-  },
-  recipeName: {
-    fontSize: fontScale(18),
-    fontWeight: '600',
-    marginBottom: 6,
-  },
-  metaContainer: {
-    flexDirection: 'row',
-    gap: 12,
-    marginBottom: 6,
-    flexWrap: 'wrap',
-  },
-  metaItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  metaText: {
-    fontSize: fontScale(14),
-  },
-  ingredientsPreview: {
-    fontSize: fontScale(12),
-    fontStyle: 'italic',
   },
   heartButton: {
-    padding: 8,
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    padding: 6,
+    borderRadius: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 3,
+    elevation: 2,
   },
   emptyContainer: {
     flex: 1,
