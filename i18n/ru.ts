@@ -23,12 +23,18 @@ export const ru = {
     lastMonth: 'Прошлый месяц',
     longAgo: 'Давно',
     searchChats: 'Поиск чатов...',
+    history: 'История',
+    searchPlaceholder: 'Поиск...',
+    noChatsFound: 'Чаты не найдены',
     noChats: 'Нет чатов',
     startChatting: 'Начните диалог с AI шеф-поваром',
     deleteTitle: 'Удалить чат',
     deleteMessage: 'Вы уверены, что хотите удалить "{title}"?',
     cancel: 'Отмена',
     delete: 'Удалить',
+    steps: 'рецепт',
+    stepsPlural: 'рецепта',
+    stepsPluralMany: 'рецептов',
   },
 
   // Welcome card
@@ -114,6 +120,9 @@ export const ru = {
     errorUpdatingFavorites: 'Не удалось обновить избранное',
     notFound: 'Рецепт не найден',
     loadError: 'Не удалось загрузить рецепт',
+    steps: 'шаг',
+    stepsPlural: 'шага',
+    stepsPluralMany: 'шагов',
   },
 
   // Common

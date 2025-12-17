@@ -19,7 +19,7 @@ type AIRecipeModalProps = {
   onClose: () => void;
 };
 
-export const AIRecipeModal = React.memo(({ visible, recipe, onClose }: AIRecipeModalProps) => {
+const AIRecipeModalComponent = ({ visible, recipe, onClose }: AIRecipeModalProps) => {
   const { isDark } = useTheme();
   const { isFavorite, toggleFavorite } = useRecipeActions(recipe?.id);
   const slideAnim = useRef(new Animated.Value(0)).current;
@@ -102,7 +102,11 @@ export const AIRecipeModal = React.memo(({ visible, recipe, onClose }: AIRecipeM
       </Animated.View>
     </Modal>
   );
-});
+};
+
+AIRecipeModalComponent.displayName = 'AIRecipeModal';
+
+export const AIRecipeModal = React.memo(AIRecipeModalComponent);
 
 const styles = StyleSheet.create({
   backdrop: {

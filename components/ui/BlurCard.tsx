@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, ViewStyle, StyleProp, Platform } from 'react-native';
+import { View, StyleSheet, ViewStyle, StyleProp } from 'react-native';
 import { BlurView, BlurTint } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 

@@ -8,12 +8,12 @@ import {
   Keyboard,
   Animated,
   Text,
+  KeyboardAvoidingView,
 } from 'react-native';
-import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@/utils/ThemeContext';
 import { useLanguage } from '@/utils/LanguageContext';
-import { COLORS, getThemeColors } from '@/constants/colors';
+import { getThemeColors } from '@/constants/colors';
 import { SPACING } from '@/constants/ui';
 
 import { AIRecipeModal } from '@/components/AIRecipeModal';
@@ -52,9 +52,7 @@ export default function ChatScreen() {
 
   // Управление чатами
   const {
-    chats,
     activeChatId,
-    loading: chatsLoading,
     createChat,
     deleteChat,
     switchChat,
@@ -239,11 +237,12 @@ export default function ChatScreen() {
   }, [router]);
 
   const renderContent = () => {
-    // Высота области для input (примерно 60px для самого input + отступы)
-    const inputAreaHeight = verticalScale(70);
-
     return (
-      <View style={styles.container}>
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+      >
         {/* ScrollView с сообщениями */}
         <ScrollView
           ref={scrollViewRef}
@@ -253,8 +252,8 @@ export default function ChatScreen() {
             messages.length === 0 && styles.emptyMessagesContent,
             {
               paddingTop: insets.top + verticalScale(8) + verticalScale(56) + SPACING.base,
-              // Добавляем отступ снизу для input + bottom inset
-              paddingBottom: inputAreaHeight + (insets.bottom || SPACING.base) + SPACING.md,
+              // Отступ снизу только для контента
+              paddingBottom: SPACING.md,
             }
           ]}
           keyboardShouldPersistTaps="handled"
@@ -303,19 +302,13 @@ export default function ChatScreen() {
         onFavoritesPress={handleFavoritesPress}
       />
 
-      {/* MessageInput - абсолютное позиционирование */}
-      <View style={{
-        position: 'absolute',
-        left: 0,
-        right: 0,
-        // На Android с режимом resize viewport уменьшается автоматически
-        // На iOS используем keyboardHeight для поднятия
-        bottom: Platform.OS === 'ios' && keyboardHeight > 0
-          ? keyboardHeight + SPACING.sm  // iOS: над клавиатурой
-          : (insets.bottom || SPACING.base),  // Обычный отступ от низа
-        paddingHorizontal: SPACING.base,
-        paddingBottom: SPACING.sm,
-      }}>
+      {/* MessageInput - внизу контейнера */}
+      <View style={[
+        styles.inputWrapper,
+        {
+          paddingBottom: (insets.bottom || SPACING.base) + SPACING.sm,
+        }
+      ]}>
         <MessageInput
           inputText={inputText}
           selectedImage={selectedImage}
@@ -331,7 +324,7 @@ export default function ChatScreen() {
           onMicrophonePress={handleMicrophonePress}
         />
       </View>
-      </View>
+      </KeyboardAvoidingView>
     );
   };
 
@@ -395,5 +388,9 @@ const styles = StyleSheet.create({
     fontSize: fontScale(28),
     fontWeight: '400',
     lineHeight: fontScale(36),
+  },
+  inputWrapper: {
+    paddingHorizontal: SPACING.base,
+    paddingTop: SPACING.sm,
   },
 });

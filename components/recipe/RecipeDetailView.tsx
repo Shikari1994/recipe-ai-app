@@ -32,7 +32,7 @@ type RecipeDetailViewProps = {
   backButtonIcon?: 'chevron-back' | 'close';
 };
 
-export const RecipeDetailView = React.memo(({
+const RecipeDetailViewComponent = ({
   recipe,
   isFavorite,
   onToggleFavorite,
@@ -189,7 +189,11 @@ export const RecipeDetailView = React.memo(({
       <View style={styles.bottomPadding} />
     </ScrollView>
   );
-});
+};
+
+RecipeDetailViewComponent.displayName = 'RecipeDetailView';
+
+export const RecipeDetailView = React.memo(RecipeDetailViewComponent);
 
 const styles = StyleSheet.create({
   container: {

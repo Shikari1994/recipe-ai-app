@@ -9,10 +9,10 @@ export const config = {
 
 interface OpenRouterRequest {
   model: string;
-  messages: Array<{
+  messages: {
     role: string;
-    content: string | Array<{ type: string; text?: string; image_url?: { url: string } }>;
-  }>;
+    content: string | { type: string; text?: string; image_url?: { url: string } }[];
+  }[];
   max_tokens?: number;
   temperature?: number;
 }

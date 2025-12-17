@@ -8,7 +8,7 @@ type LoadingMessageBubbleProps = {
   text: string;
 };
 
-export const LoadingMessageBubble = React.memo(({ text }: LoadingMessageBubbleProps) => {
+const LoadingMessageBubbleComponent = ({ text }: LoadingMessageBubbleProps) => {
   return (
     <View style={[styles.messageWrapper, styles.aiMessageWrapper]}>
       <View style={[styles.messageBubble, { backgroundColor: COLORS.primary }]}>
@@ -21,7 +21,11 @@ export const LoadingMessageBubble = React.memo(({ text }: LoadingMessageBubblePr
       </View>
     </View>
   );
-});
+};
+
+LoadingMessageBubbleComponent.displayName = 'LoadingMessageBubble';
+
+export const LoadingMessageBubble = React.memo(LoadingMessageBubbleComponent);
 
 const styles = StyleSheet.create({
   messageWrapper: {

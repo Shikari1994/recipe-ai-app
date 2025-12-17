@@ -1,9 +1,15 @@
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import { API_CONFIG, SYSTEM_PROMPT, IMAGE_SYSTEM_PROMPT } from '@/constants/apiConfig';
 import { convertImageToBase64, getImageMimeType } from './imageUtils';
 import { getUserPreferences, getPreferencesPromptText } from './userPreferences';
 import { checkAllConflicts, parseAIResponse } from './aiHelpers';
-import type { AIRecipe, AIResponse } from '@/types';
+import type { AIResponse } from '@/types';
+
+/**
+ * Константы timeout для запросов
+ */
+const TIMEOUT_TEXT_REQUEST = 70000; // 70 секунд для текстовых запросов
+const TIMEOUT_VISION_REQUEST = 180000; // 3 минуты для vision запросов
 
 /**
  * Типы для контента сообщения (text или multimodal с изображением)
@@ -20,7 +26,76 @@ type ImageContent = {
   };
 };
 
-type MessageContent = string | Array<TextContent | ImageContent>;
+type MessageContent = string | (TextContent | ImageContent)[];
+
+/**
+ * Обрабатывает ошибки запросов к AI
+ */
+function handleAIError(error: unknown): AIResponse {
+  console.error('❌ Error in getRecipesFromAI:', error);
+
+  // Обработка timeout ошибок
+  if (error instanceof Error && (error.message === 'Request timeout' || error.name === 'AbortError')) {
+    return {
+      success: false,
+      error: 'Запрос занял слишком много времени. Попробуйте упростить запрос или повторите позже.',
+    };
+  }
+
+  // Обработка сетевых ошибок
+  if (error instanceof Error && error.message === 'Network error') {
+    return {
+      success: false,
+      error: 'Нет связи с сервером. Проверьте интернет-соединение.',
+    };
+  }
+
+  // Обработка ошибок Axios
+  if (axios.isAxiosError(error)) {
+    const axiosError = error as AxiosError;
+
+    if (axiosError.response) {
+      const status = axiosError.response.status;
+      console.error('API Response Error:', status, axiosError.response.data);
+
+      // Маппинг HTTP статусов на понятные сообщения
+      const errorMessages: Record<number, string> = {
+        504: 'Запрос занял слишком много времени. Попробуйте упростить запрос или повторите позже.',
+        429: 'Превышен лимит запросов к AI. Подождите немного и попробуйте снова через 1-2 минуты.',
+        402: 'Сервис временно недоступен. Попробуйте позже.',
+      };
+
+      return {
+        success: false,
+        error: errorMessages[status] || `Ошибка сервиса: ${status}`,
+      };
+    }
+
+    if (axiosError.request) {
+      console.error('No response from server:', axiosError.request);
+
+      // Проверка на timeout
+      if (axiosError.code === 'ECONNABORTED' || axiosError.message?.includes('timeout')) {
+        return {
+          success: false,
+          error: 'Запрос занял слишком много времени. Попробуйте упростить запрос или повторите позже.',
+        };
+      }
+
+      return {
+        success: false,
+        error: 'Нет связи с сервером. Проверьте интернет-соединение.',
+      };
+    }
+  }
+
+  // Неизвестная ошибка
+  console.error('Unknown error:', error);
+  return {
+    success: false,
+    error: error instanceof Error ? error.message : 'Неизвестная ошибка',
+  };
+}
 
 /**
  * Отправляет запрос к AI через Vercel Edge Function
@@ -97,9 +172,8 @@ export async function getRecipesFromAI(
     // Увеличиваем лимит токенов для vision запросов
     const maxTokens = imageUri ? 1500 : API_CONFIG.MAX_TOKENS;
 
-    // Увеличенный timeout для vision запросов (они обрабатываются дольше)
-    // Vision запросы могут обрабатываться очень долго, особенно при первом запросе
-    const requestTimeout = imageUri ? 180000 : 70000; // 180 сек (3 мин) для vision, 70 для текста
+    // Vision запросы обрабатываются дольше
+    const requestTimeout = imageUri ? TIMEOUT_VISION_REQUEST : TIMEOUT_TEXT_REQUEST;
 
     // Подготавливаем тело запроса
     const requestBody = {
@@ -153,83 +227,6 @@ export async function getRecipesFromAI(
     };
 
   } catch (error) {
-    // Обработка различных типов ошибок
-    console.error('❌ Error in getRecipesFromAI:', error);
-
-    // Обработка timeout ошибок
-    if (error instanceof Error && (error.message === 'Request timeout' || error.name === 'AbortError')) {
-      return {
-        success: false,
-        error: 'Запрос занял слишком много времени. Попробуйте упростить запрос или повторите позже.',
-      };
-    }
-
-    // Обработка сетевых ошибок
-    if (error instanceof Error && error.message === 'Network error') {
-      return {
-        success: false,
-        error: 'Нет связи с сервером. Проверьте интернет-соединение.',
-      };
-    }
-
-    if (axios.isAxiosError(error)) {
-
-      if (error.response) {
-        // Сервер ответил с ошибкой
-        console.error('API Response Error:', error.response.status, error.response.data);
-
-        // Специальная обработка для ошибки 504 (Gateway Timeout)
-        if (error.response.status === 504) {
-          return {
-            success: false,
-            error: 'Запрос занял слишком много времени. Попробуйте упростить запрос или повторите позже.',
-          };
-        }
-
-        // Специальная обработка для ошибки 429 (Rate Limit)
-        if (error.response.status === 429) {
-          return {
-            success: false,
-            error: 'Превышен лимит запросов к AI. Подождите немного и попробуйте снова через 1-2 минуты.',
-          };
-        }
-
-        // Специальная обработка для ошибки 402 (Payment Required)
-        if (error.response.status === 402) {
-          return {
-            success: false,
-            error: 'Сервис временно недоступен. Попробуйте позже.',
-          };
-        }
-
-        return {
-          success: false,
-          error: `Ошибка сервиса: ${error.response.status}`,
-        };
-      } else if (error.request) {
-        // Запрос был отправлен, но ответа не получено
-        console.error('No response from server:', error.request);
-
-        // Проверка на timeout
-        if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
-          return {
-            success: false,
-            error: 'Запрос занял слишком много времени. Попробуйте упростить запрос или повторите позже.',
-          };
-        }
-
-        return {
-          success: false,
-          error: 'Нет связи с сервером. Проверьте интернет-соединение.',
-        };
-      }
-    }
-
-    // Ошибка при настройке запроса или неизвестная ошибка
-    console.error('Unknown error:', error);
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : 'Неизвестная ошибка',
-    };
+    return handleAIError(error);
   }
 }

@@ -4,7 +4,7 @@ module.exports = {
   expo: {
     name: "AI Recipe Assistant",
     slug: "Myapp",
-    version: "1.0.0",
+    version: "1.2.0",
     orientation: "portrait",
     icon: "./assets/images/icon.png",
     scheme: "myapp",
@@ -25,7 +25,7 @@ module.exports = {
     },
     android: {
       package: "com.myapp.recipeai",
-      versionCode: 1,
+      versionCode: 3,
       permissions: [
         "android.permission.CAMERA",
         "android.permission.READ_EXTERNAL_STORAGE",

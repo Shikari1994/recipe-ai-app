@@ -2,7 +2,6 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { ThemeProvider, useTheme } from '@/utils/ThemeContext';
 import { LanguageProvider } from '@/utils/LanguageContext';
-import { COLORS } from '@/constants/colors';
 import { useFonts, Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold } from '@expo-google-fonts/inter';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
@@ -44,7 +43,7 @@ const originalTextInputRender = (TextInput as any).render;
 };
 
 function RootLayoutContent() {
-  const { colors, isDark } = useTheme();
+  const { isDark } = useTheme();
   const paperTheme = isDark ? customDarkTheme : customLightTheme;
 
   return (

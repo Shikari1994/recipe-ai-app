@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
+import React, { createContext, useState, useContext, useEffect, useCallback, useMemo, ReactNode } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { setWallpaper } from './userPreferences';
 import { getDefaultWallpaperId } from '@/constants/wallpapers';
@@ -16,7 +16,7 @@ type Colors = {
   shadow: string;
 };
 
-const lightColors: Colors = {
+const LIGHT_COLORS: Readonly<Colors> = {
   background: '#f5f5f5',
   cardBackground: '#fff',
   text: '#333',
@@ -27,7 +27,7 @@ const lightColors: Colors = {
   shadow: '#000',
 };
 
-const darkColors: Colors = {
+const DARK_COLORS: Readonly<Colors> = {
   background: '#121212',
   cardBackground: '#1E1E1E',
   text: '#FFFFFF',
@@ -53,21 +53,20 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
   const [theme, setTheme] = useState<Theme>('light');
 
   useEffect(() => {
+    const loadTheme = async () => {
+      try {
+        const savedTheme = await AsyncStorage.getItem(THEME_KEY);
+        if (savedTheme === 'dark' || savedTheme === 'light') {
+          setTheme(savedTheme);
+        }
+      } catch (error) {
+        console.error('Error loading theme:', error);
+      }
+    };
     loadTheme();
   }, []);
 
-  const loadTheme = async () => {
-    try {
-      const savedTheme = await AsyncStorage.getItem(THEME_KEY);
-      if (savedTheme === 'dark' || savedTheme === 'light') {
-        setTheme(savedTheme);
-      }
-    } catch (error) {
-      console.error('Error loading theme:', error);
-    }
-  };
-
-  const toggleTheme = async () => {
+  const toggleTheme = useCallback(async () => {
     const newTheme: Theme = theme === 'light' ? 'dark' : 'light';
     setTheme(newTheme);
     try {
@@ -79,13 +78,22 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
     } catch (error) {
       console.error('Error saving theme:', error);
     }
-  };
+  }, [theme]);
 
-  const colors = theme === 'light' ? lightColors : darkColors;
-  const isDark = theme === 'dark';
+  const colors = useMemo(
+    () => theme === 'light' ? LIGHT_COLORS : DARK_COLORS,
+    [theme]
+  );
+
+  const isDark = useMemo(() => theme === 'dark', [theme]);
+
+  const contextValue = useMemo(
+    () => ({ theme, colors, toggleTheme, isDark }),
+    [theme, colors, toggleTheme, isDark]
+  );
 
   return (
-    <ThemeContext.Provider value={{ theme, colors, toggleTheme, isDark }}>
+    <ThemeContext.Provider value={contextValue}>
       {children}
     </ThemeContext.Provider>
   );

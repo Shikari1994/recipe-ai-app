@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { translations, Translations } from '@/i18n';
 import { DEFAULT_LANGUAGE } from '@/constants/languages';
@@ -40,10 +40,18 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   }, []);
 
-  const t = translations[language] || translations[DEFAULT_LANGUAGE];
+  const t = useMemo(() =>
+    translations[language] || translations[DEFAULT_LANGUAGE],
+    [language]
+  );
+
+  const contextValue = useMemo(
+    () => ({ language, t, setLanguage }),
+    [language, t, setLanguage]
+  );
 
   return (
-    <LanguageContext.Provider value={{ language, t, setLanguage }}>
+    <LanguageContext.Provider value={contextValue}>
       {children}
     </LanguageContext.Provider>
   );

@@ -9,26 +9,26 @@ export default function Index() {
   const [isChecking, setIsChecking] = useState(true);
 
   useEffect(() => {
-    checkTermsAcceptance();
-  }, []);
+    const checkTermsAcceptance = async () => {
+      try {
+        const hasAccepted = await AsyncStorage.getItem('hasAcceptedTerms');
 
-  const checkTermsAcceptance = async () => {
-    try {
-      const hasAccepted = await AsyncStorage.getItem('hasAcceptedTerms');
-
-      if (hasAccepted === 'true') {
-        router.replace('/(tabs)/chat');
-      } else {
+        if (hasAccepted === 'true') {
+          router.replace('/(tabs)/chat');
+        } else {
+          router.replace('/welcome');
+        }
+      } catch (error) {
+        console.error('Error checking terms acceptance:', error);
+        // В случае ошибки показываем welcome screen для безопасности
         router.replace('/welcome');
+      } finally {
+        setIsChecking(false);
       }
-    } catch (error) {
-      console.error('Error checking terms acceptance:', error);
-      // В случае ошибки показываем welcome screen для безопасности
-      router.replace('/welcome');
-    } finally {
-      setIsChecking(false);
-    }
-  };
+    };
+
+    checkTermsAcceptance();
+  }, [router]);
 
   // Показываем загрузку пока проверяем
   if (isChecking) {

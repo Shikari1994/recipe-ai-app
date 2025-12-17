@@ -1,5 +1,3 @@
-import Constants from 'expo-constants';
-
 // API конфигурация
 export const API_CONFIG = {
   // Vercel Edge Function URL

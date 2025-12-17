@@ -60,7 +60,7 @@ export function MultiSelectModal<T extends string>({
         useNativeDriver: true,
       }).start();
     }
-  }, [visible, selectedValues]);
+  }, [visible, selectedValues, slideAnim]);
 
   const toggleOption = (value: T) => {
     setSelected(prev =>

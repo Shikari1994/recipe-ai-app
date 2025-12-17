@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, Pressable, Animated } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { PlatformBlur } from '@/components/ui/PlatformBlur';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS, getThemeColors } from '@/constants/colors';
+import { getThemeColors } from '@/constants/colors';
 import { scale, verticalScale, fontScale, moderateScale, BORDER_RADIUS } from '@/utils/responsive';
 import { extractTime, extractCalories } from '@/utils/recipeHelpers';
 import type { AIRecipe } from '@/types';
@@ -87,7 +87,7 @@ type RecipePreviewCardProps = {
   onPress: () => void;
 };
 
-const RecipePreviewCard = React.memo(({ recipe, isDark, onPress }: RecipePreviewCardProps) => {
+const RecipePreviewCardComponent = ({ recipe, isDark, onPress }: RecipePreviewCardProps) => {
   const themeColors = getThemeColors(isDark);
   const scaleAnim = React.useRef(new Animated.Value(1)).current;
   const emoji = getRecipeEmoji(recipe.title);
@@ -163,7 +163,11 @@ const RecipePreviewCard = React.memo(({ recipe, isDark, onPress }: RecipePreview
       </Animated.View>
     </Pressable>
   );
-});
+};
+
+RecipePreviewCardComponent.displayName = 'RecipePreviewCard';
+
+const RecipePreviewCard = React.memo(RecipePreviewCardComponent);
 
 type AIMessageBubbleProps = {
   text: string;
@@ -172,7 +176,7 @@ type AIMessageBubbleProps = {
   onRecipePress: (recipe: AIRecipe) => void;
 };
 
-export const AIMessageBubble = React.memo(({ text, recipes, isDark, onRecipePress }: AIMessageBubbleProps) => {
+const AIMessageBubbleComponent = ({ text, recipes, isDark, onRecipePress }: AIMessageBubbleProps) => {
   const themeColors = getThemeColors(isDark);
   const hasRecipes = recipes && recipes.length > 0;
 
@@ -223,7 +227,11 @@ export const AIMessageBubble = React.memo(({ text, recipes, isDark, onRecipePres
       </View>
     </View>
   );
-});
+};
+
+AIMessageBubbleComponent.displayName = 'AIMessageBubble';
+
+export const AIMessageBubble = React.memo(AIMessageBubbleComponent);
 
 const styles = StyleSheet.create({
   container: {

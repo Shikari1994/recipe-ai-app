@@ -8,12 +8,16 @@ type UserMessageBubbleProps = {
   image?: string;
 };
 
-export const UserMessageBubble = React.memo(({ text, image }: UserMessageBubbleProps) => {
+const UserMessageBubbleComponent = ({ text, image }: UserMessageBubbleProps) => {
   return (
     <View style={[styles.messageWrapper, styles.userMessageWrapper]}>
       <View style={[styles.messageBubble, { backgroundColor: COLORS.primary }]}>
         {image && (
-          <Image source={{ uri: image }} style={styles.messageImage} />
+          <Image
+            source={{ uri: image }}
+            style={styles.messageImage}
+            resizeMode="cover"
+          />
         )}
         {text && (
           <Text style={[styles.messageText, { color: '#fff' }]}>
@@ -23,7 +27,11 @@ export const UserMessageBubble = React.memo(({ text, image }: UserMessageBubbleP
       </View>
     </View>
   );
-});
+};
+
+UserMessageBubbleComponent.displayName = 'UserMessageBubble';
+
+export const UserMessageBubble = React.memo(UserMessageBubbleComponent);
 
 const styles = StyleSheet.create({
   messageWrapper: {
@@ -41,8 +49,9 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: moderateScale(6),
   },
   messageImage: {
-    width: '100%',
+    width: scale(200),
     height: verticalScale(200),
+    minWidth: scale(200),
     borderRadius: moderateScale(12),
     marginBottom: verticalScale(8),
   },

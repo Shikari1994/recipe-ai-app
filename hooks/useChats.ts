@@ -19,11 +19,6 @@ export function useChats() {
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Загрузка чатов при монтировании
-  useEffect(() => {
-    loadChats();
-  }, []);
-
   const loadChats = useCallback(async () => {
     setLoading(true);
     try {
@@ -52,6 +47,11 @@ export function useChats() {
     }
   }, []);
 
+  // Загрузка чатов при монтировании
+  useEffect(() => {
+    loadChats();
+  }, [loadChats]);
+
   const createChat = useCallback(async (firstMessage?: string) => {
     const newChat = await createNewChat(firstMessage);
     setChats((prev) => [newChat, ...prev]);
@@ -66,28 +66,22 @@ export function useChats() {
       console.log('deleteChatStorage completed');
 
       // Обновляем список чатов
-      setChats((prev) => {
-        console.log('Updating chats, prev length:', prev.length);
-        const remainingChats = prev.filter((chat) => chat.id !== chatId);
-        console.log('Remaining chats:', remainingChats.length);
+      const updatedChats = await getAllChats();
+      setChats(updatedChats);
 
-        // Если удаляем активный чат, переключаемся на другой
-        if (chatId === activeChatId) {
-          if (remainingChats.length > 0) {
-            const newActiveId = remainingChats[0].id;
-            setActiveChatId(newActiveId);
-            setActiveChat(newActiveId);
-          } else {
-            // Если чатов не осталось, создаем новый
-            createNewChat().then((newChat) => {
-              setChats([newChat]);
-              setActiveChatId(newChat.id);
-            });
-          }
+      // Если удаляем активный чат, переключаемся на другой
+      if (chatId === activeChatId) {
+        if (updatedChats.length > 0) {
+          const newActiveId = updatedChats[0].id;
+          setActiveChatId(newActiveId);
+          await setActiveChat(newActiveId);
+        } else {
+          // Если чатов не осталось, создаем новый
+          const newChat = await createNewChat();
+          setChats([newChat]);
+          setActiveChatId(newChat.id);
         }
-
-        return remainingChats;
-      });
+      }
     } catch (error) {
       console.error('Error in useChats deleteChat:', error);
     }

@@ -7,7 +7,7 @@ type AITextMessageBubbleProps = {
   text: string;
 };
 
-export const AITextMessageBubble = React.memo(({ text }: AITextMessageBubbleProps) => {
+const AITextMessageBubbleComponent = ({ text }: AITextMessageBubbleProps) => {
   return (
     <View style={[styles.messageWrapper, styles.aiMessageWrapper]}>
       <View style={[styles.messageBubble, { backgroundColor: COLORS.primary }]}>
@@ -17,7 +17,11 @@ export const AITextMessageBubble = React.memo(({ text }: AITextMessageBubbleProp
       </View>
     </View>
   );
-});
+};
+
+AITextMessageBubbleComponent.displayName = 'AITextMessageBubble';
+
+export const AITextMessageBubble = React.memo(AITextMessageBubbleComponent);
 
 const styles = StyleSheet.create({
   messageWrapper: {

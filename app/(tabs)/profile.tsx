@@ -29,7 +29,6 @@ export default function ProfileScreen() {
   const { isDark, toggleTheme, colors } = useTheme();
   const { language, t } = useLanguage();
   const router = useRouter();
-  const [userName, setUserName] = useState(t.profile.username);
   const [modalVisible, setModalVisible] = useState(false);
   const [modalTitle, setModalTitle] = useState('');
   const [modalContent, setModalContent] = useState('');
@@ -178,7 +177,7 @@ export default function ProfileScreen() {
             />
             <View style={styles.innerContent}>
       {/* Профиль пользователя */}
-      <ProfileHeader userName={userName} textColor={colors.text} />
+      <ProfileHeader userName={t.profile.username} textColor={colors.text} />
 
       {/* Настройки приложения */}
       <View style={styles.section}>

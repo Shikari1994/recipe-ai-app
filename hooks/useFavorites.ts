@@ -27,7 +27,7 @@ export function useFavorites(recipeId?: string) {
       if (recipeId) {
         setIsFavoriteItem(favoriteIds.includes(recipeId));
       }
-    } catch (error) {
+    } catch {
       // Ошибка уже залогирована в storage.ts
     }
   }, [recipeId]);
@@ -50,7 +50,7 @@ export function useFavorites(recipeId?: string) {
 
       await loadFavorites();
       return true;
-    } catch (error) {
+    } catch {
       return false;
     } finally {
       setIsLoading(false);
@@ -64,7 +64,7 @@ export function useFavorites(recipeId?: string) {
       await removeFromFavoritesStorage(id);
       await loadFavorites();
       return true;
-    } catch (error) {
+    } catch {
       return false;
     } finally {
       setIsLoading(false);

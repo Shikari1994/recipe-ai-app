@@ -2,7 +2,7 @@ import React, { useRef } from 'react';
 import { View, Text, StyleSheet, Animated, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import type { AIRecipe } from '@/types';
-import { COLORS, getThemeColors } from '@/constants/colors';
+import { getThemeColors } from '@/constants/colors';
 import { scale, verticalScale, fontScale, moderateScale, BORDER_RADIUS } from '@/utils/responsive';
 import { extractTime, extractCalories } from '@/utils/recipeHelpers';
 
@@ -85,7 +85,7 @@ type AIRecipeCardProps = {
   onPress: () => void;
 };
 
-export const AIRecipeCard = React.memo(({ recipe, isDark, onPress }: AIRecipeCardProps) => {
+const AIRecipeCardComponent = ({ recipe, isDark, onPress }: AIRecipeCardProps) => {
   const themeColors = getThemeColors(isDark);
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const emoji = getRecipeEmoji(recipe.title);
@@ -161,7 +161,11 @@ export const AIRecipeCard = React.memo(({ recipe, isDark, onPress }: AIRecipeCar
       </Animated.View>
     </Pressable>
   );
-});
+};
+
+AIRecipeCardComponent.displayName = 'AIRecipeCard';
+
+export const AIRecipeCard = React.memo(AIRecipeCardComponent);
 
 const styles = StyleSheet.create({
   card: {

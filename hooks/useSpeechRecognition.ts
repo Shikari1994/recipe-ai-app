@@ -1,5 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
-import { Platform } from 'react-native';
+import { useState, useCallback } from 'react';
 
 // Типы для модуля распознавания речи
 type SpeechRecognitionModule = {
@@ -27,6 +26,7 @@ let useSpeechRecognitionEvent: SpeechEventHandler = () => {};
 let isSpeechRecognitionAvailable = false;
 
 try {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const SpeechRecognition = require('expo-speech-recognition');
   ExpoSpeechRecognitionModule = SpeechRecognition.ExpoSpeechRecognitionModule;
   useSpeechRecognitionEvent = SpeechRecognition.useSpeechRecognitionEvent;
@@ -45,46 +45,10 @@ export const useSpeechRecognition = () => {
   const [transcript, setTranscript] = useState('');
   const [error, setError] = useState<string | null>(null);
 
-  // Проверяем доступность модуля
-  if (!isSpeechRecognitionAvailable) {
-    return {
-      isRecording: false,
-      transcript: '',
-      error: 'Распознавание речи недоступно в Expo Go. Используйте development build.',
-      startRecording: async () => {
-        console.warn('Speech recognition not available');
-      },
-      stopRecording: async () => {},
-      cancelRecording: async () => {},
-      clearTranscript: () => {},
-    };
-  }
-
-  // Слушаем события распознавания речи
-  useSpeechRecognitionEvent('start', () => {
-    setIsRecording(true);
-    setError(null);
-  });
-
-  useSpeechRecognitionEvent('end', () => {
-    setIsRecording(false);
-  });
-
-  useSpeechRecognitionEvent('result', (event) => {
-    const results = event.results;
-    if (results && results.length > 0) {
-      const latestResult = results[results.length - 1];
-      if (latestResult?.transcription) {
-        setTranscript(latestResult.transcription);
-      }
-    }
-  });
-
-  useSpeechRecognitionEvent('error', (event) => {
-    setIsRecording(false);
-    setError(event.error || 'Ошибка распознавания речи');
-    console.error('Speech recognition error:', event);
-  });
+  // Устанавливаем ошибку если модуль недоступен
+  const moduleError = !isSpeechRecognitionAvailable
+    ? 'Распознавание речи недоступно в Expo Go. Используйте development build.'
+    : null;
 
   // Запросить разрешения
   const requestPermissions = useCallback(async () => {
@@ -101,6 +65,12 @@ export const useSpeechRecognition = () => {
 
   // Начать запись
   const startRecording = useCallback(async () => {
+    if (!isSpeechRecognitionAvailable || !ExpoSpeechRecognitionModule) {
+      console.warn('Speech recognition not available');
+      setError(moduleError);
+      return;
+    }
+
     try {
       setError(null);
       setTranscript('');
@@ -113,7 +83,6 @@ export const useSpeechRecognition = () => {
       }
 
       // Запускаем распознавание
-      if (!ExpoSpeechRecognitionModule) return;
       await ExpoSpeechRecognitionModule.start({
         lang: 'ru-RU',
         interimResults: true,
@@ -123,18 +92,20 @@ export const useSpeechRecognition = () => {
         addsPunctuation: true,
         contextualStrings: ['рецепт', 'блюдо', 'ингредиенты', 'готовить'],
       });
+      setIsRecording(true);
     } catch (err) {
       console.error('Error starting recording:', err);
       setError('Не удалось начать запись');
       setIsRecording(false);
     }
-  }, [requestPermissions]);
+  }, [requestPermissions, moduleError]);
 
   // Остановить запись
   const stopRecording = useCallback(async () => {
     if (!ExpoSpeechRecognitionModule) return;
     try {
       await ExpoSpeechRecognitionModule.stop();
+      setIsRecording(false);
     } catch (err) {
       console.error('Error stopping recording:', err);
     }
@@ -160,7 +131,7 @@ export const useSpeechRecognition = () => {
   return {
     isRecording,
     transcript,
-    error,
+    error: error || moduleError,
     startRecording,
     stopRecording,
     cancelRecording,

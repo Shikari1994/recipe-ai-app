@@ -14,7 +14,7 @@ type ChatHeaderProps = {
   onFavoritesPress: () => void;
 };
 
-export const ChatHeader = React.memo(({ title, isDark, topInset, onMenuPress, onFavoritesPress }: ChatHeaderProps) => {
+const ChatHeaderComponent = ({ title, isDark, topInset, onMenuPress, onFavoritesPress }: ChatHeaderProps) => {
   return (
     <View
       style={[
@@ -78,7 +78,11 @@ export const ChatHeader = React.memo(({ title, isDark, topInset, onMenuPress, on
       </View>
     </View>
   );
-});
+};
+
+ChatHeaderComponent.displayName = 'ChatHeader';
+
+export const ChatHeader = React.memo(ChatHeaderComponent);
 
 const styles = StyleSheet.create({
   header: {

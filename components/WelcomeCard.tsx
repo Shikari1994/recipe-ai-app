@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, Platform } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
@@ -11,7 +11,7 @@ type WelcomeCardProps = {
   isDark: boolean;
 };
 
-export const WelcomeCard = React.memo(({ isDark }: WelcomeCardProps) => {
+const WelcomeCardComponent = ({ isDark }: WelcomeCardProps) => {
   const themeColors = getThemeColors(isDark);
   const { t } = useLanguage();
 
@@ -52,7 +52,11 @@ export const WelcomeCard = React.memo(({ isDark }: WelcomeCardProps) => {
       </View>
     </View>
   );
-});
+};
+
+WelcomeCardComponent.displayName = 'WelcomeCard';
+
+export const WelcomeCard = React.memo(WelcomeCardComponent);
 
 const styles = StyleSheet.create({
   wrapper: {

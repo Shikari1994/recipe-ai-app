@@ -11,8 +11,8 @@ import {
   Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS } from '@/constants/colors';
 import { scale, verticalScale, fontScale, moderateScale, BORDER_RADIUS } from '@/utils/responsive';
 import type { Chat } from '@/types';
@@ -44,6 +44,7 @@ export function ChatDrawer({
 }: ChatDrawerProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const { t, language } = useLanguage();
+  const insets = useSafeAreaInsets();
 
   // Фильтрация чатов по поиску
   const filteredGroups = useMemo(() => {
@@ -325,7 +326,10 @@ export function ChatDrawer({
           <TouchableOpacity
             style={[
               styles.profileButton,
-              { backgroundColor: isDark ? '#2a2a2a' : '#e5e5e5' }
+              {
+                backgroundColor: isDark ? '#2a2a2a' : '#e5e5e5',
+                marginBottom: Math.max(insets.bottom, verticalScale(20)),
+              }
             ]}
             onPress={() => {
               onProfilePress();
@@ -487,7 +491,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginHorizontal: scale(20),
-    marginBottom: verticalScale(30),
     paddingVertical: verticalScale(14),
     borderRadius: BORDER_RADIUS.md,
     gap: scale(10),

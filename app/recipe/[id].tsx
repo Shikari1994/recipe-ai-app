@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
-  View,
   StyleSheet,
   Alert,
   ActivityIndicator,
@@ -35,7 +34,7 @@ export default function RecipeDetailScreen() {
         } else {
           setRecipe(aiRecipe);
         }
-      } catch (error) {
+      } catch {
         Alert.alert(t.recipe.error, t.recipe.loadError);
         router.back();
       } finally {

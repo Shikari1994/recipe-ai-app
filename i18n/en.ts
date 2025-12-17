@@ -25,12 +25,18 @@ export const en: Translations = {
     lastMonth: 'Last Month',
     longAgo: 'Long Ago',
     searchChats: 'Search chats...',
+    history: 'History',
+    searchPlaceholder: 'Search...',
+    noChatsFound: 'No chats found',
     noChats: 'No chats',
     startChatting: 'Start chatting with AI chef',
     deleteTitle: 'Delete chat',
     deleteMessage: 'Are you sure you want to delete "{title}"?',
     cancel: 'Cancel',
     delete: 'Delete',
+    steps: 'recipe',
+    stepsPlural: 'recipes',
+    stepsPluralMany: 'recipes',
   },
 
   // Welcome card
@@ -116,6 +122,9 @@ export const en: Translations = {
     errorUpdatingFavorites: 'Failed to update favorites',
     notFound: 'Recipe not found',
     loadError: 'Failed to load recipe',
+    steps: 'step',
+    stepsPlural: 'steps',
+    stepsPluralMany: 'steps',
   },
 
   // Common

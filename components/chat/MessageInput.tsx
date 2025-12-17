@@ -22,7 +22,7 @@ type MessageInputProps = {
   onMicrophonePress: () => void;
 };
 
-export const MessageInput = React.memo(({
+const MessageInputComponent = ({
   inputText,
   selectedImage,
   canSend,
@@ -124,7 +124,11 @@ export const MessageInput = React.memo(({
       </View>
     </View>
   );
-});
+};
+
+MessageInputComponent.displayName = 'MessageInput';
+
+export const MessageInput = React.memo(MessageInputComponent);
 
 const styles = StyleSheet.create({
   inputContainerWrapper: {

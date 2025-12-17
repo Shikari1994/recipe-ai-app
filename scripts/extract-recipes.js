@@ -1,3 +1,5 @@
+/* eslint-env node */
+/* eslint-disable no-undef, no-unused-vars */
 const fs = require('fs');
 const path = require('path');
 

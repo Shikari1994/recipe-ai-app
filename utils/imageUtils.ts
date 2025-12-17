@@ -1,4 +1,3 @@
-import * as FileSystem from 'expo-file-system';
 import { Platform } from 'react-native';
 import { manipulateAsync, SaveFormat } from 'expo-image-manipulator';
 

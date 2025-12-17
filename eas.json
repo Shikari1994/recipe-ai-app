@@ -19,7 +19,8 @@
       },
       "distribution": "internal",
       "env": {
-        "EXPO_PUBLIC_ENV": "preview"
+        "EXPO_PUBLIC_ENV": "preview",
+        "ORG_GRADLE_PROJECT_newArchEnabled": "true"
       }
     },
     "production": {
@@ -27,7 +28,8 @@
         "buildType": "app-bundle"
       },
       "env": {
-        "EXPO_PUBLIC_ENV": "production"
+        "EXPO_PUBLIC_ENV": "production",
+        "ORG_GRADLE_PROJECT_newArchEnabled": "true"
       }
     }
   },

@@ -1,6 +1,6 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import * as ImagePicker from 'expo-image-picker';
-import { Alert, Platform } from 'react-native';
+import { Alert } from 'react-native';
 
 type ImagePickerOptions = {
   allowsEditing?: boolean;
@@ -22,12 +22,12 @@ export function useImagePicker(options: ImagePickerOptions = {}) {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [hasPermissions, setHasPermissions] = useState(false);
 
-  const pickerOptions: ImagePicker.ImagePickerOptions = {
+  const pickerOptions: ImagePicker.ImagePickerOptions = useMemo(() => ({
     mediaTypes: ['images'],
     allowsEditing: options.allowsEditing ?? DEFAULT_OPTIONS.allowsEditing,
     aspect: options.aspect ?? DEFAULT_OPTIONS.aspect,
     quality: options.quality ?? DEFAULT_OPTIONS.quality,
-  };
+  }), [options.allowsEditing, options.aspect, options.quality]);
 
   // Запрос разрешений
   const requestPermissions = useCallback(async () => {
@@ -49,7 +49,7 @@ export function useImagePicker(options: ImagePickerOptions = {}) {
       }
 
       return granted;
-    } catch (error) {
+    } catch {
       Alert.alert('Ошибка', 'Не удалось запросить разрешения');
       return false;
     }
@@ -72,7 +72,7 @@ export function useImagePicker(options: ImagePickerOptions = {}) {
       }
 
       return null;
-    } catch (error) {
+    } catch {
       Alert.alert('Ошибка', 'Не удалось выбрать изображение');
       return null;
     }
@@ -95,7 +95,7 @@ export function useImagePicker(options: ImagePickerOptions = {}) {
       }
 
       return null;
-    } catch (error) {
+    } catch {
       Alert.alert('Ошибка', 'Не удалось сделать фото');
       return null;
     }
