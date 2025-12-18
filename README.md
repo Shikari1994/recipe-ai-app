@@ -1,50 +1,174 @@
-# Welcome to your Expo app 👋
+# Recipe AI - Умный помощник по рецептам
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+**Recipe AI** — мобильное приложение на React Native (Expo), которое помогает находить рецепты на основе доступных продуктов с использованием искусственного интеллекта.
 
-## Get started
+## Описание
 
-1. Install dependencies
+Recipe AI позволяет пользователям:
+- 🍳 Получать персонализированные рецепты на основе имеющихся продуктов
+- 📸 Загружать фото продуктов для автоматического распознавания
+- 🎤 Использовать голосовой ввод для поиска рецептов
+- 🥗 Учитывать аллергии и диетические ограничения
+- 💾 Сохранять избранные рецепты
+- 🌍 Работать на русском и английском языках
 
-   ```bash
-   npm install
-   ```
+## Основные возможности
 
-2. Start the app
+- **AI-генерация рецептов** через Google Gemini API (OpenRouter)
+- **Распознавание продуктов** по фотографии
+- **Голосовой ввод** для удобного поиска
+- **Персонализация**: учет аллергий (молоко, яйца, орехи, арахис, глютен, рыба)
+- **Диетические предпочтения**: вегетарианство, веганство, низкокалорийная диета
+- **Избранное**: сохранение любимых рецептов
+- **История чатов**: доступ к предыдущим поискам
+- **Темная и светлая темы**
+- **Красивые обои**: настраиваемый интерфейс
 
-   ```bash
-   npx expo start
-   ```
+## Технологический стек
 
-In the output, you'll find options to open the app in a
+### Frontend
+- **React Native** (Expo SDK 54)
+- **TypeScript**
+- **Expo Router** для навигации
+- **React Native Paper** для UI компонентов
+- **AsyncStorage** для локального хранения данных
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+### Backend
+- **Vercel Edge Functions** для проксирования API запросов
+- **OpenRouter API** для маршрутизации AI запросов
+- **Google Gemini 2.5 Flash Lite** в качестве AI модели
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+### Инструменты разработки
+- **EAS Build** для сборки приложения
+- **Expo Dev Client** для разработки
+- **ESLint** для контроля качества кода
 
-## Get a fresh project
+## Структура проекта
 
-When you're ready, run:
-
-```bash
-npm run reset-project
+```
+Myapp/
+├── app/                    # Экраны приложения (Expo Router)
+│   ├── (tabs)/            # Главные вкладки
+│   ├── +not-found.tsx     # 404 страница
+│   └── _layout.tsx        # Корневой layout
+├── components/            # Переиспользуемые компоненты
+├── constants/             # Константы и конфигурация
+├── utils/                 # Утилиты и хелперы
+├── hooks/                 # Кастомные React хуки
+├── i18n/                  # Переводы (ru/en)
+├── api/                   # Vercel Edge Functions
+├── assets/                # Изображения и ассеты
+├── docs/                  # Privacy Policy и Terms of Service
+└── types/                 # TypeScript типы
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## Установка и запуск
 
-## Learn more
+### Требования
+- Node.js 18+
+- npm или yarn
+- Expo CLI
+- Android Studio (для Android) или Xcode (для iOS)
 
-To learn more about developing your project with Expo, look at the following resources:
+### Установка зависимостей
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+```bash
+npm install
+```
 
-## Join the community
+### Настройка переменных окружения
 
-Join our community of developers creating universal apps.
+Создайте файл `.env` в корне проекта:
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+```env
+OPENROUTER_API_KEY=sk-or-v1-your-api-key-here
+```
+
+### Запуск приложения
+
+```bash
+# Запуск в режиме разработки
+npx expo start
+
+# Запуск на Android
+npx expo run:android
+
+# Запуск на iOS
+npx expo run:ios
+```
+
+## Сборка приложения
+
+### Development Build
+
+```bash
+npx eas-cli build --profile development --platform android
+```
+
+### Preview Build (APK)
+
+```bash
+npx eas-cli build --profile preview --platform android
+```
+
+### Production Build (AAB для Google Play)
+
+```bash
+npx eas-cli build --profile production --platform android
+```
+
+## Развертывание Backend на Vercel
+
+1. Установите Vercel CLI:
+```bash
+npm install -g vercel
+```
+
+2. Войдите в аккаунт:
+```bash
+vercel login
+```
+
+3. Разверните проект:
+```bash
+vercel
+```
+
+4. Добавьте переменную окружения `OPENROUTER_API_KEY` в Vercel Dashboard
+
+Подробная инструкция: [VERCEL_DEPLOYMENT.md](./VERCEL_DEPLOYMENT.md)
+
+## Безопасность
+
+- API ключ OpenRouter защищен через Vercel Edge Functions
+- Все пользовательские данные хранятся локально на устройстве
+- Приложение не собирает персональные данные
+- Подробнее: [docs/privacy.html](./docs/privacy.html)
+
+## Лицензия
+
+MIT License - см. файл [LICENSE](./LICENSE)
+
+## Политика конфиденциальности и условия использования
+
+- [Политика конфиденциальности (RU)](./docs/privacy.html)
+- [Privacy Policy (EN)](./docs/privacy-en.html)
+- [Условия использования (RU)](./docs/terms.html)
+- [Terms of Service (EN)](./docs/terms-en.html)
+
+## Контакты
+
+- **Email**: support@recipeai.app
+- **Приложение**: Recipe AI
+- **Версия**: 1.2.0
+
+## Поддержка
+
+Если у вас возникли вопросы или проблемы:
+1. Проверьте [документацию](./docs/)
+2. Создайте issue в репозитории
+3. Напишите на support@recipeai.app
+
+---
+
+**Приятного использования!** 🍳

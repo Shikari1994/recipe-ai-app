@@ -25,7 +25,7 @@ export async function convertImageToBase64(imageUri: string): Promise<string> {
 
     // Для мобильных платформ
     // Используем expo-image-manipulator для надежной конвертации
-    // Максимально уменьшаем размер для быстрой передачи через Worker
+    // Максимально уменьшаем размер для быстрой передачи через Edge Function
     // 320px достаточно для распознавания продуктов
     const manipResult = await manipulateAsync(
       imageUri,
