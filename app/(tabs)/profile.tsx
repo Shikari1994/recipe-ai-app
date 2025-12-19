@@ -231,7 +231,7 @@ export default function ProfileScreen() {
         <SettingItem
           icon="image"
           title={t.profile.wallpaper}
-          value={getWallpaperName()}
+          value={getWallpaperName}
           onPress={() => setWallpaperModalVisible(true)}
           borderColor={colors.border}
           textColor={colors.text}
