@@ -102,12 +102,14 @@ function handleAIError(error: unknown): AIResponse {
  * @param ingredients - строка с перечислением продуктов (может быть пустой, если есть изображение)
  * @param imageUri - опциональный URI изображения для анализа
  * @param userLanguage - язык пользователя для ответа AI (ru или en)
+ * @param signal - опциональный AbortSignal для отмены запроса
  * @returns объект с рецептами или ошибкой
  */
 export async function getRecipesFromAI(
   ingredients: string,
   imageUri?: string,
-  userLanguage: string = 'ru'
+  userLanguage: string = 'ru',
+  signal?: AbortSignal
 ): Promise<AIResponse> {
   try {
     // Проверка: должен быть либо текст, либо изображение
@@ -197,6 +199,7 @@ export async function getRecipesFromAI(
           'Content-Type': 'application/json',
         },
         timeout: requestTimeout,
+        signal, // Поддержка отмены запроса
       }
     );
 

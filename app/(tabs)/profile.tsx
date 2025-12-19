@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -46,56 +46,50 @@ export default function ProfileScreen() {
   const [wallpaperModalVisible, setWallpaperModalVisible] = useState(false);
   const [languageModalVisible, setLanguageModalVisible] = useState(false);
 
-  // Загрузка настроек при монтировании
-  useFocusEffect(
-    useCallback(() => {
-      loadPreferences();
-    }, [])
-  );
-
-  const loadPreferences = async () => {
+  // Мемоизированные функции
+  const loadPreferences = useCallback(async () => {
     const prefs = await getUserPreferences();
     setPreferences(prefs);
-  };
+  }, []);
 
-  const handleSaveAllergens = async (selected: Allergen[]) => {
+  const handleSaveAllergens = useCallback(async (selected: Allergen[]) => {
     const newPrefs = { ...preferences, allergens: selected };
     const success = await saveUserPreferences(newPrefs);
     if (success) {
       setPreferences(newPrefs);
     }
-  };
+  }, [preferences]);
 
-  const handleSaveDietaryRestrictions = async (selected: DietaryRestriction[]) => {
+  const handleSaveDietaryRestrictions = useCallback(async (selected: DietaryRestriction[]) => {
     const newPrefs = { ...preferences, dietaryRestrictions: selected };
     const success = await saveUserPreferences(newPrefs);
     if (success) {
       setPreferences(newPrefs);
     }
-  };
+  }, [preferences]);
 
-  const handleServingsChange = async (servings: number) => {
+  const handleServingsChange = useCallback(async (servings: number) => {
     const newPrefs = { ...preferences, servings };
     const success = await saveUserPreferences(newPrefs);
     if (success) {
       setPreferences(newPrefs);
     }
-  };
+  }, [preferences]);
 
-  const handleWallpaperChange = async (wallpaperId: string) => {
+  const handleWallpaperChange = useCallback(async (wallpaperId: string) => {
     const success = await setWallpaper(wallpaperId);
     if (success) {
       setPreferences({ ...preferences, wallpaperId });
     }
-  };
+  }, [preferences]);
 
-  const getWallpaperName = () => {
+  const getWallpaperName = useMemo(() => {
     const wallpaper = WALLPAPERS.find(w => w.id === preferences.wallpaperId);
     if (!wallpaper) return t.profile.noAllergens;
     return t.wallpapers[wallpaper.id as keyof typeof t.wallpapers] || wallpaper.name;
-  };
+  }, [preferences.wallpaperId, t]);
 
-  const showInfoModal = (title: string, content: string) => {
+  const showInfoModal = useCallback((title: string, content: string) => {
     setModalTitle(title);
     setModalContent(content);
     setModalVisible(true);
@@ -105,9 +99,9 @@ export default function ProfileScreen() {
       tension: 65,
       friction: 10,
     }).start();
-  };
+  }, [slideAnim]);
 
-  const hideInfoModal = () => {
+  const hideInfoModal = useCallback(() => {
     Animated.timing(slideAnim, {
       toValue: 0,
       duration: 250,
@@ -115,9 +109,9 @@ export default function ProfileScreen() {
     }).start(() => {
       setModalVisible(false);
     });
-  };
+  }, [slideAnim]);
 
-  const handleLogout = () => {
+  const handleLogout = useCallback(() => {
     Alert.alert(
       t.profile.logoutConfirm,
       t.profile.logoutMessage,
@@ -132,7 +126,30 @@ export default function ProfileScreen() {
         },
       ]
     );
-  };
+  }, [t]);
+
+  // Мемоизированные массивы опций
+  const allergenOptions = useMemo(() => [
+    { value: 'milk' as Allergen, label: t.allergens.milk, icon: 'nutrition' },
+    { value: 'eggs' as Allergen, label: t.allergens.eggs, icon: 'egg' },
+    { value: 'tree-nuts' as Allergen, label: t.allergens.treeNuts, icon: 'leaf' },
+    { value: 'peanuts' as Allergen, label: t.allergens.peanuts, icon: 'leaf' },
+    { value: 'gluten' as Allergen, label: t.allergens.gluten, icon: 'warning' },
+    { value: 'fish' as Allergen, label: t.allergens.fish, icon: 'fish' },
+  ], [t]);
+
+  const dietaryOptions = useMemo(() => [
+    { value: 'vegetarian' as DietaryRestriction, label: t.profile.vegetarian, icon: 'leaf' },
+    { value: 'vegan' as DietaryRestriction, label: t.profile.vegan, icon: 'leaf' },
+    { value: 'low-calorie' as DietaryRestriction, label: t.profile.lowCalorie, icon: 'fitness' },
+  ], [t]);
+
+  // Загрузка настроек при монтировании
+  useFocusEffect(
+    useCallback(() => {
+      loadPreferences();
+    }, [loadPreferences])
+  );
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -351,14 +368,7 @@ export default function ProfileScreen() {
       <MultiSelectModal
         visible={allergensModalVisible}
         title={t.profile.selectAllergensModal}
-        options={[
-          { value: 'milk' as Allergen, label: t.allergens.milk, icon: 'nutrition' },
-          { value: 'eggs' as Allergen, label: t.allergens.eggs, icon: 'egg' },
-          { value: 'tree-nuts' as Allergen, label: t.allergens.treeNuts, icon: 'leaf' },
-          { value: 'peanuts' as Allergen, label: t.allergens.peanuts, icon: 'leaf' },
-          { value: 'gluten' as Allergen, label: t.allergens.gluten, icon: 'warning' },
-          { value: 'fish' as Allergen, label: t.allergens.fish, icon: 'fish' },
-        ]}
+        options={allergenOptions}
         selectedValues={preferences.allergens}
         onClose={() => setAllergensModalVisible(false)}
         onSave={handleSaveAllergens}
@@ -369,11 +379,7 @@ export default function ProfileScreen() {
       <MultiSelectModal
         visible={dietModalVisible}
         title={t.profile.selectDietaryRestrictionsModal}
-        options={[
-          { value: 'vegetarian' as DietaryRestriction, label: t.profile.vegetarian, icon: 'leaf' },
-          { value: 'vegan' as DietaryRestriction, label: t.profile.vegan, icon: 'leaf' },
-          { value: 'low-calorie' as DietaryRestriction, label: t.profile.lowCalorie, icon: 'fitness' },
-        ]}
+        options={dietaryOptions}
         selectedValues={preferences.dietaryRestrictions}
         onClose={() => setDietModalVisible(false)}
         onSave={handleSaveDietaryRestrictions}

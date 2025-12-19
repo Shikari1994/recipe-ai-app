@@ -12,6 +12,7 @@ export function useChatMessages(activeChatId: string | null) {
   const [selectedRecipe, setSelectedRecipe] = useState<AIRecipe | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
   const { t, language } = useLanguage();
 
   const loadMessages = useCallback(async () => {
@@ -47,6 +48,14 @@ export function useChatMessages(activeChatId: string | null) {
       if (!inputText.trim() && !selectedImage) return;
       if (!activeChatId) return;
 
+      // Отменяем предыдущий запрос, если он еще выполняется
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+
+      // Создаем новый AbortController для текущего запроса
+      abortControllerRef.current = new AbortController();
+
       const userMessage: Message = {
         id: uuid.v4() as string,
         text: inputText.trim(),
@@ -74,7 +83,8 @@ export function useChatMessages(activeChatId: string | null) {
       const result = await getRecipesFromAI(
         inputText.trim(),
         selectedImage || undefined,
-        language
+        language,
+        abortControllerRef.current.signal
       );
 
       // Убираем сообщение "загрузка"

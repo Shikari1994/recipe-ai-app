@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import {
   View,
   Text,
@@ -62,7 +62,15 @@ export function ChatDrawer({
       .filter((group) => group.chats.length > 0);
   }, [chats, searchQuery]);
 
-  const handleDeleteChat = (chat: Chat) => {
+  // Создаем плоский массив для одного FlatList вместо вложенных
+  const flatData = useMemo(() => {
+    return filteredGroups.flatMap(group => [
+      { type: 'header' as const, data: group },
+      ...group.chats.map(chat => ({ type: 'chat' as const, data: chat }))
+    ]);
+  }, [filteredGroups]);
+
+  const handleDeleteChat = useCallback((chat: Chat) => {
     console.log('ChatDrawer handleDeleteChat called for:', chat.id, chat.title);
 
     const message = t.chat.deleteMessage.replace('{title}', chat.title);
@@ -100,9 +108,9 @@ export function ChatDrawer({
         { cancelable: true }
       );
     }
-  };
+  }, [t, onDeleteChat]);
 
-  const renderChatItem = ({ item }: { item: Chat }) => {
+  const renderChatItem = useCallback(({ item }: { item: Chat }) => {
     const isActive = item.id === activeChatId;
 
     return (
@@ -186,27 +194,22 @@ export function ChatDrawer({
         </TouchableOpacity>
       </TouchableOpacity>
     );
-  };
+  }, [activeChatId, isDark, onChatSelect, onClose, handleDeleteChat, t, language]);
 
-  const renderGroupHeader = ({ item }: { item: { title: string; chats: Chat[] } }) => (
+  const renderGroupHeader = useCallback(({ item }: { item: { title: string; chats: Chat[] } }) => (
     <View style={styles.groupHeader}>
       <Text style={[styles.groupTitle, { color: isDark ? '#999' : '#666' }]}>
         {item.title}
       </Text>
     </View>
-  );
+  ), [isDark]);
 
-  const renderGroup = ({ item }: { item: { title: string; chats: Chat[] } }) => (
-    <View>
-      {renderGroupHeader({ item })}
-      <FlatList
-        data={item.chats}
-        renderItem={renderChatItem}
-        keyExtractor={(chat) => chat.id}
-        scrollEnabled={false}
-      />
-    </View>
-  );
+  const renderItem = useCallback(({ item }: { item: { type: 'header' | 'chat', data: any } }) => {
+    if (item.type === 'header') {
+      return renderGroupHeader({ item: item.data });
+    }
+    return renderChatItem({ item: item.data });
+  }, [renderGroupHeader, renderChatItem]);
 
   return (
     <Modal
@@ -301,13 +304,17 @@ export function ChatDrawer({
             </View>
           </View>
 
-          {/* Список чатов */}
+          {/* Список чатов - плоский FlatList вместо вложенных */}
           <FlatList
-            data={filteredGroups}
-            renderItem={renderGroup}
-            keyExtractor={(item, index) => `${item.title}-${index}`}
+            data={flatData}
+            renderItem={renderItem}
+            keyExtractor={(item, index) => `${item.type}-${index}`}
             contentContainerStyle={styles.listContainer}
             showsVerticalScrollIndicator={false}
+            initialNumToRender={10}
+            maxToRenderPerBatch={10}
+            windowSize={5}
+            removeClippedSubviews={Platform.OS === 'android'}
             ListEmptyComponent={
               <View style={styles.emptyContainer}>
                 <Ionicons

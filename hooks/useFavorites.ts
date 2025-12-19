@@ -37,9 +37,13 @@ export function useFavorites(recipeId?: string) {
     loadFavorites();
   }, [loadFavorites]);
 
-  // Добавление в избранное
+  // Добавление в избранное с оптимистичным обновлением
   const addToFavorites = useCallback(async (id: string, aiRecipe?: AIRecipe) => {
+    // Оптимистично обновляем UI сразу
+    setFavorites(prev => [...prev, id]);
+    setIsFavoriteItem(true);
     setIsLoading(true);
+
     try {
       await addToFavoritesStorage(id);
 
@@ -48,28 +52,39 @@ export function useFavorites(recipeId?: string) {
         await saveAIRecipe(aiRecipe);
       }
 
-      await loadFavorites();
       return true;
-    } catch {
+    } catch (error) {
+      // Откатываем при ошибке
+      setFavorites(prev => prev.filter(fav => fav !== id));
+      setIsFavoriteItem(false);
       return false;
     } finally {
       setIsLoading(false);
     }
-  }, [loadFavorites]);
+  }, []);
 
-  // Удаление из избранного
+  // Удаление из избранного с оптимистичным обновлением
   const removeFromFavorites = useCallback(async (id: string) => {
+    // Сохраняем предыдущее состояние для отката
+    const previousFavorites = favorites;
+
+    // Оптимистично обновляем UI сразу
+    setFavorites(prev => prev.filter(fav => fav !== id));
+    setIsFavoriteItem(false);
     setIsLoading(true);
+
     try {
       await removeFromFavoritesStorage(id);
-      await loadFavorites();
       return true;
-    } catch {
+    } catch (error) {
+      // Откатываем при ошибке
+      setFavorites(previousFavorites);
+      setIsFavoriteItem(previousFavorites.includes(id));
       return false;
     } finally {
       setIsLoading(false);
     }
-  }, [loadFavorites]);
+  }, [favorites]);
 
   // Переключение избранного
   const toggleFavorite = useCallback(async (id: string, aiRecipe?: AIRecipe) => {

@@ -66,18 +66,26 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
     loadTheme();
   }, []);
 
-  const toggleTheme = useCallback(async () => {
-    const newTheme: Theme = theme === 'light' ? 'dark' : 'light';
-    setTheme(newTheme);
-    try {
-      await AsyncStorage.setItem(THEME_KEY, newTheme);
+  const toggleTheme = useCallback(() => {
+    setTheme(prevTheme => (prevTheme === 'light' ? 'dark' : 'light'));
+  }, []);
 
-      // Автоматически меняем обои при смене темы
-      const newWallpaperId = getDefaultWallpaperId(newTheme === 'dark');
-      await setWallpaper(newWallpaperId);
-    } catch (error) {
-      console.error('Error saving theme:', error);
-    }
+  // Side effects: save theme and update wallpaper when theme changes
+  useEffect(() => {
+    const saveThemeAndWallpaper = async () => {
+      try {
+        await AsyncStorage.setItem(THEME_KEY, theme);
+
+        // Автоматически меняем обои при смене темы
+        const newWallpaperId = getDefaultWallpaperId(theme === 'dark');
+        await setWallpaper(newWallpaperId);
+      } catch (error) {
+        console.error('Error saving theme:', error);
+      }
+    };
+
+    // Only run on theme changes, not on initial mount
+    saveThemeAndWallpaper();
   }, [theme]);
 
   const colors = useMemo(

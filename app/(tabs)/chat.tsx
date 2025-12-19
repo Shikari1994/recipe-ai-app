@@ -27,12 +27,9 @@ import {
   MessageInput,
   UserMessageBubble,
 } from '@/components/chat';
-import { useImagePicker, useChatMessages, useSpeechRecognition, useChats } from '@/hooks';
+import { useImagePicker, useChatMessages, useSpeechRecognition, useChats, useWallpaper } from '@/hooks';
 
 import { verticalScale, fontScale } from '@/utils/responsive';
-import { getUserPreferences } from '@/utils/userPreferences';
-import { WALLPAPERS, WallpaperConfig, getDefaultWallpaperId } from '@/constants/wallpapers';
-import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 
@@ -43,12 +40,12 @@ export default function ChatScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const [inputText, setInputText] = useState('');
-  const [wallpaperConfig, setWallpaperConfig] = useState<WallpaperConfig | null>(null);
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const [drawerVisible, setDrawerVisible] = useState(false);
   const pulseAnim = React.useRef(new Animated.Value(1)).current;
 
   const { selectedImage, showImageOptions, clearImage } = useImagePicker();
+  const { wallpaperConfig } = useWallpaper(isDark);
 
   // Управление чатами
   const {
@@ -76,24 +73,6 @@ export default function ChatScreen() {
   const { isRecording, transcript, startRecording, stopRecording, clearTranscript, error: speechError } = useSpeechRecognition();
 
   const activeChat = getActiveChat();
-
-  // Загрузка выбранных обоев при фокусе на экране и при смене темы
-  useFocusEffect(
-    useCallback(() => {
-      const loadWallpaper = async () => {
-        const prefs = await getUserPreferences();
-        const wallpaperId = prefs.wallpaperId || getDefaultWallpaperId(isDark);
-        const wallpaper = WALLPAPERS.find(w => w.id === wallpaperId);
-        if (wallpaper) {
-          setWallpaperConfig(wallpaper);
-        }
-      };
-      loadWallpaper();
-    }, [isDark])
-  );
-
-  // Автопрокрутка при новых сообщениях (теперь используем onContentSizeChange в ScrollView)
-  // useEffect убран, так как onContentSizeChange обрабатывает это автоматически
 
   // Отслеживание клавиатуры
   useEffect(() => {
@@ -176,41 +155,6 @@ export default function ChatScreen() {
 
   const canSend = !!(inputText.trim() || selectedImage);
 
-  // Рендер фона в зависимости от типа обоев
-  const renderBackground = () => {
-    if (!wallpaperConfig) {
-      return null;
-    }
-
-    if (wallpaperConfig.type === 'image' && wallpaperConfig.image) {
-      return (
-        <ImageBackground
-          source={wallpaperConfig.image}
-          style={styles.backgroundImage}
-          resizeMode="cover"
-        >
-          {renderContent()}
-        </ImageBackground>
-      );
-    }
-
-    if (wallpaperConfig.type === 'gradient' && wallpaperConfig.colors) {
-      return (
-        <LinearGradient
-          colors={wallpaperConfig.colors}
-          locations={wallpaperConfig.locations}
-          start={{ x: 0.5, y: 0 }}
-          end={{ x: 0.5, y: 1 }}
-          style={styles.backgroundImage}
-        >
-          {renderContent()}
-        </LinearGradient>
-      );
-    }
-
-    return null;
-  };
-
   const handleNewChat = useCallback(async () => {
     await createChat();
     await refreshChats();
@@ -236,7 +180,7 @@ export default function ChatScreen() {
     router.push('/(tabs)/profile');
   }, [router]);
 
-  const renderContent = () => {
+  const renderContent = useCallback(() => {
     return (
       <KeyboardAvoidingView
         style={styles.container}
@@ -326,7 +270,66 @@ export default function ChatScreen() {
       </View>
       </KeyboardAvoidingView>
     );
-  };
+  }, [
+    scrollViewRef,
+    messages,
+    insets,
+    keyboardHeight,
+    themeColors,
+    t,
+    isDark,
+    scrollToBottom,
+    handleRecipePress,
+    activeChat,
+    inputText,
+    selectedImage,
+    canSend,
+    isRecording,
+    speechError,
+    pulseAnim,
+    setInputText,
+    handleSendMessage,
+    showImageOptions,
+    clearImage,
+    handleMicrophonePress,
+    setDrawerVisible,
+    handleFavoritesPress,
+  ]);
+
+  // Рендер фона в зависимости от типа обоев
+  const renderBackground = useCallback(() => {
+    if (!wallpaperConfig) {
+      return null;
+    }
+
+    if (wallpaperConfig.type === 'image' && wallpaperConfig.image) {
+      return (
+        <ImageBackground
+          source={wallpaperConfig.image}
+          style={styles.backgroundImage}
+          resizeMode="cover"
+        >
+          {renderContent()}
+        </ImageBackground>
+      );
+    }
+
+    if (wallpaperConfig.type === 'gradient' && wallpaperConfig.colors) {
+      return (
+        <LinearGradient
+          colors={wallpaperConfig.colors}
+          locations={wallpaperConfig.locations}
+          start={{ x: 0.5, y: 0 }}
+          end={{ x: 0.5, y: 1 }}
+          style={styles.backgroundImage}
+        >
+          {renderContent()}
+        </LinearGradient>
+      );
+    }
+
+    return null;
+  }, [wallpaperConfig, renderContent]);
 
   return (
     <>
