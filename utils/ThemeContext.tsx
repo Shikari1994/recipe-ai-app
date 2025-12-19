@@ -1,7 +1,5 @@
 import React, { createContext, useState, useContext, useEffect, useCallback, useMemo, ReactNode } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { setWallpaper } from './userPreferences';
-import { getDefaultWallpaperId } from '@/constants/wallpapers';
 
 type Theme = 'light' | 'dark';
 
@@ -70,22 +68,18 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
     setTheme(prevTheme => (prevTheme === 'light' ? 'dark' : 'light'));
   }, []);
 
-  // Side effects: save theme and update wallpaper when theme changes
+  // Side effects: save theme when it changes
+  // Note: Wallpapers now change automatically via useWallpaper hook
   useEffect(() => {
-    const saveThemeAndWallpaper = async () => {
+    const saveTheme = async () => {
       try {
         await AsyncStorage.setItem(THEME_KEY, theme);
-
-        // Автоматически меняем обои при смене темы
-        const newWallpaperId = getDefaultWallpaperId(theme === 'dark');
-        await setWallpaper(newWallpaperId);
       } catch (error) {
         console.error('Error saving theme:', error);
       }
     };
 
-    // Only run on theme changes, not on initial mount
-    saveThemeAndWallpaper();
+    saveTheme();
   }, [theme]);
 
   const colors = useMemo(

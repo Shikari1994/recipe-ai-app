@@ -45,7 +45,7 @@ export default function ChatScreen() {
   const pulseAnim = React.useRef(new Animated.Value(1)).current;
 
   const { selectedImage, showImageOptions, clearImage } = useImagePicker();
-  const { wallpaperConfig } = useWallpaper(isDark);
+  const wallpaperConfig = useWallpaper(isDark);
 
   // Управление чатами
   const {

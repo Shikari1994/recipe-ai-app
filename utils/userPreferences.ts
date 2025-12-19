@@ -7,7 +7,6 @@ const DEFAULT_PREFERENCES: UserPreferences = {
   allergens: [],
   dietaryRestrictions: [],
   servings: 2,
-  // wallpaperId не установлен - будет использоваться getDefaultWallpaperId(isDark)
 };
 
 /**
@@ -35,20 +34,6 @@ export async function saveUserPreferences(preferences: UserPreferences): Promise
     return true;
   } catch (error) {
     console.error('Error saving user preferences:', error);
-    return false;
-  }
-}
-
-/**
- * Установить обои
- */
-export async function setWallpaper(wallpaperId: string): Promise<boolean> {
-  try {
-    const prefs = await getUserPreferences();
-    prefs.wallpaperId = wallpaperId;
-    return await saveUserPreferences(prefs);
-  } catch (error) {
-    console.error('Error setting wallpaper:', error);
     return false;
   }
 }

@@ -18,11 +18,10 @@ import { BlurView } from 'expo-blur';
 import { PLATFORM } from '@/constants/ui';
 import { fontScale, scale, verticalScale, moderateScale } from '@/utils/responsive';
 import { useRouter } from 'expo-router';
-import { MultiSelectModal, ServingsSelector, WallpaperSelector } from '@/components/ui';
+import { MultiSelectModal, ServingsSelector } from '@/components/ui';
 import { SettingItem, ProfileHeader, InfoModal, LanguageModal } from '@/components/profile';
-import { getUserPreferences, saveUserPreferences, setWallpaper } from '@/utils/userPreferences';
+import { getUserPreferences, saveUserPreferences } from '@/utils/userPreferences';
 import type { UserPreferences, Allergen, DietaryRestriction } from '@/types';
-import { WALLPAPERS, getDefaultWallpaperId } from '@/constants/wallpapers';
 import { LANGUAGES } from '@/constants/languages';
 
 export default function ProfileScreen() {
@@ -39,11 +38,9 @@ export default function ProfileScreen() {
     allergens: [],
     dietaryRestrictions: [],
     servings: 2,
-    wallpaperId: getDefaultWallpaperId(isDark),
   });
   const [allergensModalVisible, setAllergensModalVisible] = useState(false);
   const [dietModalVisible, setDietModalVisible] = useState(false);
-  const [wallpaperModalVisible, setWallpaperModalVisible] = useState(false);
   const [languageModalVisible, setLanguageModalVisible] = useState(false);
 
   // Мемоизированные функции
@@ -75,19 +72,6 @@ export default function ProfileScreen() {
       setPreferences(newPrefs);
     }
   }, [preferences]);
-
-  const handleWallpaperChange = useCallback(async (wallpaperId: string) => {
-    const success = await setWallpaper(wallpaperId);
-    if (success) {
-      setPreferences({ ...preferences, wallpaperId });
-    }
-  }, [preferences]);
-
-  const getWallpaperName = useMemo(() => {
-    const wallpaper = WALLPAPERS.find(w => w.id === preferences.wallpaperId);
-    if (!wallpaper) return t.profile.noAllergens;
-    return t.wallpapers[wallpaper.id as keyof typeof t.wallpapers] || wallpaper.name;
-  }, [preferences.wallpaperId, t]);
 
   const showInfoModal = useCallback((title: string, content: string) => {
     setModalTitle(title);
@@ -223,16 +207,6 @@ export default function ProfileScreen() {
           title={t.profile.language}
           value={LANGUAGES.find(l => l.code === language)?.nativeName || LANGUAGES[0].nativeName}
           onPress={() => setLanguageModalVisible(true)}
-          borderColor={colors.border}
-          textColor={colors.text}
-          textSecondaryColor={colors.textSecondary}
-        />
-
-        <SettingItem
-          icon="image"
-          title={t.profile.wallpaper}
-          value={getWallpaperName}
-          onPress={() => setWallpaperModalVisible(true)}
           borderColor={colors.border}
           textColor={colors.text}
           textSecondaryColor={colors.textSecondary}
@@ -383,15 +357,6 @@ export default function ProfileScreen() {
         selectedValues={preferences.dietaryRestrictions}
         onClose={() => setDietModalVisible(false)}
         onSave={handleSaveDietaryRestrictions}
-        isDark={isDark}
-      />
-
-      {/* Модальное окно выбора обоев */}
-      <WallpaperSelector
-        visible={wallpaperModalVisible}
-        selectedWallpaperId={preferences.wallpaperId || getDefaultWallpaperId(isDark)}
-        onClose={() => setWallpaperModalVisible(false)}
-        onSelect={handleWallpaperChange}
         isDark={isDark}
       />
 

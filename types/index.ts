@@ -75,7 +75,6 @@ export type UserPreferences = {
   allergens: Allergen[];
   dietaryRestrictions: DietaryRestriction[];
   servings: number;
-  wallpaperId?: string;
 };
 
 export const ALLERGEN_LABELS: Record<Allergen, string> = {

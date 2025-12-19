@@ -1,30 +1,22 @@
-import { useState, useEffect, useCallback } from 'react';
-import { getUserPreferences } from '@/utils/userPreferences';
+import { useState, useEffect } from 'react';
 import { WALLPAPERS, WallpaperConfig, getDefaultWallpaperId } from '@/constants/wallpapers';
 
 /**
- * Custom hook для загрузки и управления обоями
+ * Custom hook для загрузки обоев в зависимости от темы
+ * Автоматически выбирает темные обои для темной темы и светлые для светлой
  * @param isDark - текущая тема (темная или светлая)
- * @returns объект с конфигурацией обоев и функцией перезагрузки
+ * @returns конфигурация обоев
  */
 export function useWallpaper(isDark: boolean) {
   const [wallpaperConfig, setWallpaperConfig] = useState<WallpaperConfig | null>(null);
 
-  const loadWallpaper = useCallback(async () => {
-    const prefs = await getUserPreferences();
-    const wallpaperId = prefs.wallpaperId || getDefaultWallpaperId(isDark);
+  useEffect(() => {
+    const wallpaperId = getDefaultWallpaperId(isDark);
     const wallpaper = WALLPAPERS.find(w => w.id === wallpaperId);
     if (wallpaper) {
       setWallpaperConfig(wallpaper);
     }
   }, [isDark]);
 
-  useEffect(() => {
-    loadWallpaper();
-  }, [loadWallpaper]);
-
-  return {
-    wallpaperConfig,
-    reloadWallpaper: loadWallpaper,
-  };
+  return wallpaperConfig;
 }
