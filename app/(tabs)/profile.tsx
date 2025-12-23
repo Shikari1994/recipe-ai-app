@@ -14,7 +14,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { useTheme } from '@/utils/ThemeContext';
 import { useLanguage } from '@/utils/LanguageContext';
-import { BlurView } from 'expo-blur';
 import { PLATFORM } from '@/constants/ui';
 import { fontScale, scale, verticalScale, moderateScale } from '@/utils/responsive';
 import { useRouter } from 'expo-router';
@@ -46,6 +45,7 @@ export default function ProfileScreen() {
   // Мемоизированные функции
   const loadPreferences = useCallback(async () => {
     const prefs = await getUserPreferences();
+    console.log('📋 Loaded preferences:', prefs);
     setPreferences(prefs);
   }, []);
 
@@ -54,24 +54,45 @@ export default function ProfileScreen() {
     const success = await saveUserPreferences(newPrefs);
     if (success) {
       setPreferences(newPrefs);
+      console.log('✅ Allergens saved successfully:', selected);
+    } else {
+      console.error('❌ Failed to save allergens');
+      Alert.alert(
+        t.common.error || 'Ошибка',
+        'Не удалось сохранить аллергены. Попробуйте снова.'
+      );
     }
-  }, [preferences]);
+  }, [preferences, t]);
 
   const handleSaveDietaryRestrictions = useCallback(async (selected: DietaryRestriction[]) => {
     const newPrefs = { ...preferences, dietaryRestrictions: selected };
     const success = await saveUserPreferences(newPrefs);
     if (success) {
       setPreferences(newPrefs);
+      console.log('✅ Dietary restrictions saved successfully:', selected);
+    } else {
+      console.error('❌ Failed to save dietary restrictions');
+      Alert.alert(
+        t.common.error || 'Ошибка',
+        'Не удалось сохранить диетические ограничения. Попробуйте снова.'
+      );
     }
-  }, [preferences]);
+  }, [preferences, t]);
 
   const handleServingsChange = useCallback(async (servings: number) => {
     const newPrefs = { ...preferences, servings };
     const success = await saveUserPreferences(newPrefs);
     if (success) {
       setPreferences(newPrefs);
+      console.log('✅ Servings saved successfully:', servings);
+    } else {
+      console.error('❌ Failed to save servings');
+      Alert.alert(
+        t.common.error || 'Ошибка',
+        'Не удалось сохранить количество порций. Попробуйте снова.'
+      );
     }
-  }, [preferences]);
+  }, [preferences, t]);
 
   const showInfoModal = useCallback((title: string, content: string) => {
     setModalTitle(title);
@@ -161,22 +182,7 @@ export default function ProfileScreen() {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.contentWrapper}>
-          <View
-            style={[
-              styles.blurContainer,
-              {
-                backgroundColor: 'transparent',
-                borderWidth: 1,
-                borderColor: isDark ? 'rgba(138, 43, 226, 0.3)' : 'rgba(138, 43, 226, 0.2)',
-              },
-            ]}
-          >
-            <BlurView
-              intensity={80}
-              tint={isDark ? 'dark' : 'light'}
-              style={styles.blurBackground}
-            />
-            <View style={styles.innerContent}>
+          <View style={styles.innerContent}>
       {/* Профиль пользователя */}
       <ProfileHeader userName={t.profile.username} textColor={colors.text} />
 
@@ -322,7 +328,6 @@ export default function ProfileScreen() {
       </TouchableOpacity>
 
       <View style={styles.bottomPadding} />
-            </View>
           </View>
         </View>
       </ScrollView>
@@ -402,25 +407,8 @@ const styles = StyleSheet.create({
   contentWrapper: {
     paddingHorizontal: 16,
   },
-  blurContainer: {
-    borderRadius: 24,
-    overflow: 'hidden',
-    shadowColor: 'rgba(138, 43, 226, 0.3)',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 6,
-  },
-  blurBackground: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-  },
   innerContent: {
     position: 'relative',
-    zIndex: 1,
   },
   section: {
     marginBottom: 16,

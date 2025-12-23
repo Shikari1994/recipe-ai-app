@@ -11,14 +11,17 @@ import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { COLORS } from '@/constants/colors';
+import { COLORS, getThemeColors } from '@/constants/colors';
 import { scale, verticalScale, fontScale, moderateScale, BORDER_RADIUS } from '@/utils/responsive';
 import { useLanguage } from '@/utils/LanguageContext';
+import { useTheme } from '@/utils/ThemeContext';
 
 export default function WelcomeScreen() {
   const [accepted, setAccepted] = useState(false);
   const router = useRouter();
   const { t } = useLanguage();
+  const { isDark } = useTheme();
+  const themeColors = getThemeColors(isDark);
 
   const handleContinue = async () => {
     if (!accepted) return;
@@ -54,7 +57,7 @@ export default function WelcomeScreen() {
           {/* Иконка приложения */}
           <View style={styles.iconContainer}>
             <LinearGradient
-              colors={COLORS.gradient.icon}
+              colors={themeColors.gradientIcon}
               style={styles.iconGradient}
             >
               <Ionicons name="restaurant" size={moderateScale(60)} color="#fff" />
@@ -127,7 +130,7 @@ export default function WelcomeScreen() {
             activeOpacity={0.8}
           >
             <LinearGradient
-              colors={accepted ? COLORS.gradient.icon : ['#ccc', '#999']}
+              colors={accepted ? themeColors.gradientIcon : ['#ccc', '#999']}
               style={styles.buttonGradient}
             >
               <Text style={styles.continueButtonText}>{t.welcomeScreen.continue}</Text>

@@ -1,10 +1,10 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import { useLanguage } from '@/utils/LanguageContext';
-import { COLORS, getThemeColors } from '@/constants/colors';
+import { getThemeColors } from '@/constants/colors';
 import { scale, verticalScale, fontScale, moderateScale } from '@/utils/responsive';
 
 type WelcomeCardProps = {
@@ -12,7 +12,7 @@ type WelcomeCardProps = {
 };
 
 const WelcomeCardComponent = ({ isDark }: WelcomeCardProps) => {
-  const themeColors = getThemeColors(isDark);
+  const themeColors = useMemo(() => getThemeColors(isDark), [isDark]);
   const { t } = useLanguage();
 
   return (
@@ -21,7 +21,7 @@ const WelcomeCardComponent = ({ isDark }: WelcomeCardProps) => {
       <View style={[
         styles.card,
         {
-          borderColor: 'rgba(200, 180, 255, 0.4)',
+          borderColor: themeColors.primaryMedium,
         }
       ]}>
         <BlurView
@@ -34,7 +34,7 @@ const WelcomeCardComponent = ({ isDark }: WelcomeCardProps) => {
           {/* Лого */}
           <View style={styles.logoContainer}>
             <LinearGradient
-              colors={COLORS.gradient.icon}
+              colors={themeColors.gradientIcon}
               style={styles.logo}
             >
               <Ionicons name="restaurant" size={moderateScale(24)} color="#fff" />

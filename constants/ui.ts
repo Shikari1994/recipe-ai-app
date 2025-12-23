@@ -1,4 +1,4 @@
-import { Platform } from 'react-native';
+import { Platform, StatusBar } from 'react-native';
 import { scale, verticalScale, moderateScale, fontScale, SPACING as RESPONSIVE_SPACING, BORDER_RADIUS, ICON_SIZES } from '@/utils/responsive';
 
 /**
@@ -119,7 +119,11 @@ export const PLATFORM = {
 
   // Safe area отступы
   safeArea: {
-    top: Platform.select({ ios: verticalScale(44), default: 0 }),
+    top: Platform.select({
+      ios: verticalScale(44),
+      android: StatusBar.currentHeight || 0,
+      default: 0
+    }),
     bottom: Platform.select({ ios: verticalScale(34), default: 0 }),
   },
 

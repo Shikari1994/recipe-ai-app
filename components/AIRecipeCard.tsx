@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useMemo } from 'react';
 import { View, Text, StyleSheet, Animated, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import type { AIRecipe } from '@/types';
@@ -14,7 +14,7 @@ type AIRecipeCardProps = {
 };
 
 const AIRecipeCardComponent = ({ recipe, isDark, onPress }: AIRecipeCardProps) => {
-  const themeColors = getThemeColors(isDark);
+  const themeColors = useMemo(() => getThemeColors(isDark), [isDark]);
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const emoji = getRecipeEmoji(recipe.title);
 
@@ -38,7 +38,7 @@ const AIRecipeCardComponent = ({ recipe, isDark, onPress }: AIRecipeCardProps) =
 
   // Цвета карточки в зависимости от темы (как в чате)
   const cardBgColor = isDark ? 'rgba(45, 45, 55, 0.95)' : 'rgba(255, 255, 255, 0.95)';
-  const emojiCircleBgColor = isDark ? 'rgba(139, 92, 246, 0.2)' : '#F3F0FF';
+  const emojiCircleBgColor = themeColors.primaryLight;
 
   return (
     <Pressable onPress={onPress} onPressIn={handlePressIn} onPressOut={handlePressOut}>
@@ -48,7 +48,7 @@ const AIRecipeCardComponent = ({ recipe, isDark, onPress }: AIRecipeCardProps) =
           backgroundColor: cardBgColor,
           transform: [{ scale: scaleAnim }],
           borderWidth: isDark ? 1 : 0,
-          borderColor: isDark ? 'rgba(139, 92, 246, 0.3)' : 'transparent',
+          borderColor: isDark ? themeColors.primaryMedium : 'transparent',
         }
       ]}>
         {/* Иконка эмодзи */}
@@ -60,15 +60,15 @@ const AIRecipeCardComponent = ({ recipe, isDark, onPress }: AIRecipeCardProps) =
 
         {/* Контент карточки */}
         <View style={styles.cardContent}>
-          <Text style={[styles.name, { color: themeColors.text }]} numberOfLines={2}>
+          <Text style={[styles.name, { color: themeColors.text }]} numberOfLines={3}>
             {recipe.title}
           </Text>
 
           {/* Мета информация */}
           <View style={styles.metaRow}>
             <View style={styles.metaItem}>
-              <Ionicons name="time-outline" size={moderateScale(14)} color={isDark ? '#A78BFA' : themeColors.textSecondary} />
-              <Text style={[styles.metaText, { color: isDark ? '#A78BFA' : themeColors.textSecondary }]}>
+              <Ionicons name="time-outline" size={moderateScale(14)} color={themeColors.textSecondary} />
+              <Text style={[styles.metaText, { color: themeColors.textSecondary }]}>
                 {extractTime(recipe.time)} мин
               </Text>
             </View>
@@ -112,14 +112,14 @@ const styles = StyleSheet.create({
     marginRight: scale(12),
   },
   emojiCircle: {
-    width: scale(48),
-    height: scale(48),
-    borderRadius: scale(24),
+    width: moderateScale(48),
+    height: moderateScale(48),
+    borderRadius: moderateScale(24),
     justifyContent: 'center',
     alignItems: 'center',
   },
   emoji: {
-    fontSize: fontScale(24),
+    fontSize: fontScale(22),
   },
   cardContent: {
     flex: 1,
@@ -133,12 +133,14 @@ const styles = StyleSheet.create({
   metaRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: scale(12),
+    flexWrap: 'wrap',
+    gap: scale(8),
   },
   metaItem: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: scale(4),
+    flexShrink: 1,
   },
   metaText: {
     fontSize: fontScale(12),
@@ -147,10 +149,11 @@ const styles = StyleSheet.create({
   stepsButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: scale(4),
-    paddingHorizontal: scale(8),
-    paddingVertical: scale(4),
-    borderRadius: scale(12),
+    gap: scale(3),
+    paddingHorizontal: scale(6),
+    paddingVertical: scale(3),
+    borderRadius: scale(10),
+    flexShrink: 0,
   },
   stepsText: {
     color: '#fff',

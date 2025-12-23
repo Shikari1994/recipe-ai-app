@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -10,7 +10,7 @@ import { Ionicons } from '@expo/vector-icons';
 import type { AIRecipe } from '@/types';
 import { useTheme } from '@/utils/ThemeContext';
 import { useLanguage } from '@/utils/LanguageContext';
-import { getThemeColors, COLORS } from '@/constants/colors';
+import { getThemeColors } from '@/constants/colors';
 import { scale, verticalScale, fontScale, moderateScale, BORDER_RADIUS } from '@/utils/responsive';
 import { getPlural } from '@/utils/plurals';
 
@@ -43,7 +43,7 @@ const RecipeDetailViewComponent = ({
   const { colors, isDark } = useTheme();
   const { t, language } = useLanguage();
   const [checkedSteps, setCheckedSteps] = useState<Record<number, boolean>>({});
-  const themeColors = getThemeColors(isDark);
+  const themeColors = useMemo(() => getThemeColors(isDark), [isDark]);
 
   const toggleStep = useCallback((index: number) => {
     setCheckedSteps((prev) => ({
@@ -80,7 +80,7 @@ const RecipeDetailViewComponent = ({
           <Ionicons
             name={isFavorite ? 'heart' : 'heart-outline'}
             size={24}
-            color={COLORS.primary}
+            color={themeColors.primary}
           />
         </TouchableOpacity>
       </View>
@@ -93,7 +93,7 @@ const RecipeDetailViewComponent = ({
       {/* Мета-информация в строку */}
       <View style={[
         styles.metaRow,
-        { borderColor: isDark ? 'rgba(138, 43, 226, 0.2)' : 'rgba(138, 43, 226, 0.15)' }
+        { borderColor: themeColors.primaryLight }
       ]}>
         <View style={styles.metaItem}>
           <Ionicons name="time-outline" size={18} color={themeColors.textSecondary} />
@@ -135,7 +135,7 @@ const RecipeDetailViewComponent = ({
               {
                 backgroundColor: isDark ? 'rgba(255, 255, 255, 0.03)' : 'rgba(0, 0, 0, 0.02)',
                 borderColor: checkedSteps[index]
-                  ? COLORS.primary
+                  ? themeColors.primary
                   : isDark
                   ? 'rgba(255, 255, 255, 0.08)'
                   : 'rgba(0, 0, 0, 0.08)',
@@ -149,10 +149,8 @@ const RecipeDetailViewComponent = ({
                 styles.stepNumber,
                 {
                   backgroundColor: checkedSteps[index]
-                    ? COLORS.primary
-                    : isDark
-                    ? 'rgba(138, 43, 226, 0.15)'
-                    : 'rgba(138, 43, 226, 0.1)',
+                    ? themeColors.primary
+                    : themeColors.primaryLight,
                 },
               ]}
             >
@@ -162,7 +160,7 @@ const RecipeDetailViewComponent = ({
                 <Text
                   style={[
                     styles.stepNumberText,
-                    { color: COLORS.primary },
+                    { color: themeColors.primary },
                   ]}
                 >
                   {index + 1}

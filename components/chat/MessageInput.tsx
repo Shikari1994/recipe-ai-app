@@ -1,9 +1,9 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, TextInput, TouchableOpacity, Image, StyleSheet, Animated, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { PlatformBlur } from '@/components/ui/PlatformBlur';
 import { LinearGradient } from 'expo-linear-gradient';
-import { COLORS, getThemeColors } from '@/constants/colors';
+import { getThemeColors } from '@/constants/colors';
 import { scale, verticalScale, fontScale, moderateScale } from '@/utils/responsive';
 import { useLanguage } from '@/utils/LanguageContext';
 
@@ -36,7 +36,7 @@ const MessageInputComponent = ({
   onClearImage,
   onMicrophonePress,
 }: MessageInputProps) => {
-  const themeColors = getThemeColors(isDark);
+  const themeColors = useMemo(() => getThemeColors(isDark), [isDark]);
   const { t } = useLanguage();
 
   return (
@@ -48,7 +48,7 @@ const MessageInputComponent = ({
           style={styles.inputBlur}
         />
         <LinearGradient
-          colors={isDark ? COLORS.gradient.purple.dark : COLORS.gradient.purple.light}
+          colors={isDark ? themeColors.gradientDark : themeColors.gradientLight}
           style={styles.inputGradient}
           pointerEvents="none"
         />
@@ -73,12 +73,15 @@ const MessageInputComponent = ({
                   style={styles.removeImageButton}
                   onPress={onClearImage}
                 >
-                  <Ionicons name="close-circle" size={moderateScale(18)} color={COLORS.primary} />
+                  <Ionicons name="close-circle" size={moderateScale(18)} color={themeColors.primary} />
                 </TouchableOpacity>
               </View>
             ) : (
-              <TouchableOpacity style={styles.iconButton} onPress={onImagePress}>
-                <Ionicons name="camera" size={moderateScale(26)} color={COLORS.primary} />
+              <TouchableOpacity
+                style={[styles.iconButton, { backgroundColor: themeColors.primaryLight }]}
+                onPress={onImagePress}
+              >
+                <Ionicons name="camera" size={moderateScale(26)} color={themeColors.primary} />
               </TouchableOpacity>
             )}
 
@@ -86,13 +89,16 @@ const MessageInputComponent = ({
             {!speechError && (
               <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
                 <TouchableOpacity
-                  style={[styles.iconButton, isRecording && styles.recordingButton]}
+                  style={[
+                    styles.iconButton,
+                    { backgroundColor: isRecording ? themeColors.primary : themeColors.primaryLight }
+                  ]}
                   onPress={onMicrophonePress}
                 >
                   <Ionicons
                     name={isRecording ? "mic" : "mic-outline"}
                     size={moderateScale(26)}
-                    color={isRecording ? '#fff' : COLORS.primary}
+                    color={isRecording ? '#fff' : themeColors.primary}
                   />
                 </TouchableOpacity>
               </Animated.View>
@@ -113,7 +119,11 @@ const MessageInputComponent = ({
             />
 
             <TouchableOpacity
-              style={[styles.sendButton, !canSend && styles.sendButtonDisabled]}
+              style={[
+                styles.sendButton,
+                { backgroundColor: themeColors.primary },
+                !canSend && styles.sendButtonDisabled
+              ]}
               onPress={onSend}
               disabled={!canSend}
             >
@@ -166,10 +176,6 @@ const styles = StyleSheet.create({
     borderRadius: moderateScale(18),
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(138, 43, 226, 0.15)',
-  },
-  recordingButton: {
-    backgroundColor: COLORS.primary,
   },
   input: {
     flex: 1,
@@ -181,7 +187,6 @@ const styles = StyleSheet.create({
     width: scale(36),
     height: scale(36),
     borderRadius: moderateScale(18),
-    backgroundColor: COLORS.primary,
     justifyContent: 'center',
     alignItems: 'center',
   },

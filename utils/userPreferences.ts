@@ -16,11 +16,14 @@ export async function getUserPreferences(): Promise<UserPreferences> {
   try {
     const data = await AsyncStorage.getItem(USER_PREFERENCES_KEY);
     if (data) {
-      return JSON.parse(data);
+      const parsed = JSON.parse(data);
+      console.log('📖 Retrieved preferences from AsyncStorage:', parsed);
+      return parsed;
     }
+    console.log('📖 No saved preferences found, using defaults');
     return DEFAULT_PREFERENCES;
   } catch (error) {
-    console.error('Error getting user preferences:', error);
+    console.error('❌ Error getting user preferences:', error);
     return DEFAULT_PREFERENCES;
   }
 }
@@ -30,10 +33,12 @@ export async function getUserPreferences(): Promise<UserPreferences> {
  */
 export async function saveUserPreferences(preferences: UserPreferences): Promise<boolean> {
   try {
+    console.log('💾 Saving preferences to AsyncStorage:', preferences);
     await AsyncStorage.setItem(USER_PREFERENCES_KEY, JSON.stringify(preferences));
+    console.log('✅ Preferences saved successfully');
     return true;
   } catch (error) {
-    console.error('Error saving user preferences:', error);
+    console.error('❌ Error saving user preferences:', error);
     return false;
   }
 }
@@ -44,30 +49,30 @@ export async function saveUserPreferences(preferences: UserPreferences): Promise
 export function getAllergensText(allergens: Allergen[], language: string = 'ru'): string {
   if (allergens.length === 0) return '';
 
-  const allergenNamesRu: Record<Allergen, string> = {
-    'milk': 'молоко',
-    'eggs': 'яйца',
-    'tree-nuts': 'орехи',
-    'peanuts': 'арахис',
-    'gluten': 'глютен',
-    'fish': 'рыба',
+  const allergenDetailsRu: Record<Allergen, string> = {
+    'milk': 'молоко и все молочные продукты (сливки, сметана, творог, сыр, кефир, йогурт, масло)',
+    'eggs': 'яйца и все продукты содержащие яйца',
+    'tree-nuts': 'орехи (миндаль, кешью, грецкий орех, фундук, фисташки, пекан и любые другие орехи)',
+    'peanuts': 'арахис и арахисовые продукты',
+    'gluten': 'глютен и все продукты содержащие глютен (пшеница, рожь, ячмень, хлеб, макароны, выпечка)',
+    'fish': 'рыба и морепродукты любых видов (лосось, тунец, треска, форель, семга, сельдь, карп, щука, окунь, судак, скумбрия, камбала, палтус, минтай, хек, креветки, крабы, мидии, кальмары и любые другие)',
   };
 
-  const allergenNamesEn: Record<Allergen, string> = {
-    'milk': 'dairy',
-    'eggs': 'eggs',
-    'tree-nuts': 'tree nuts',
-    'peanuts': 'peanuts',
-    'gluten': 'gluten',
-    'fish': 'fish',
+  const allergenDetailsEn: Record<Allergen, string> = {
+    'milk': 'dairy and all dairy products (milk, cream, sour cream, cottage cheese, cheese, kefir, yogurt, butter)',
+    'eggs': 'eggs and all products containing eggs',
+    'tree-nuts': 'tree nuts (almonds, cashews, walnuts, hazelnuts, pistachios, pecans, and any other nuts)',
+    'peanuts': 'peanuts and peanut products',
+    'gluten': 'gluten and all gluten-containing products (wheat, rye, barley, bread, pasta, baked goods)',
+    'fish': 'fish and seafood of all types (salmon, tuna, cod, trout, herring, carp, pike, perch, mackerel, flounder, halibut, pollock, hake, shrimp, crab, mussels, squid, and any others)',
   };
 
-  const allergenNames = language === 'en' ? allergenNamesEn : allergenNamesRu;
-  const names = allergens.map(a => allergenNames[a]);
+  const allergenDetails = language === 'en' ? allergenDetailsEn : allergenDetailsRu;
+  const details = allergens.map(a => allergenDetails[a]);
 
   return language === 'en'
-    ? `Exclude the following products from recipes (allergy): ${names.join(', ')}.`
-    : `Исключи из рецептов следующие продукты (аллергия): ${names.join(', ')}.`;
+    ? `⛔ ABSOLUTE PROHIBITION - NEVER use these products (SEVERE ALLERGY - can be life-threatening):\n${details.join('\n')}\n\n❗ ALL recipes MUST be completely free from these allergens and their derivatives!`
+    : `⛔ АБСОЛЮТНЫЙ ЗАПРЕТ - НИКОГДА не использовать эти продукты (СЕРЬЕЗНАЯ АЛЛЕРГИЯ - может быть опасно для жизни):\n${details.join('\n')}\n\n❗ ВСЕ рецепты ДОЛЖНЫ быть полностью свободны от этих аллергенов и их производных!`;
 }
 
 /**
@@ -117,8 +122,8 @@ export function getPreferencesPromptText(preferences: UserPreferences, language:
   // Количество порций
   if (preferences.servings > 0) {
     const servingsText = language === 'en'
-      ? `Number of servings: ${preferences.servings}.`
-      : `Количество порций: ${preferences.servings}.`;
+      ? `⚠️ CALCULATE ALL INGREDIENTS FOR ${preferences.servings} SERVINGS!`
+      : `⚠️ РАССЧИТАЙ ВСЕ ИНГРЕДИЕНТЫ НА ${preferences.servings} ПОРЦИИ!`;
     parts.push(servingsText);
   }
 

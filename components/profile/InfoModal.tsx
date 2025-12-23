@@ -108,6 +108,7 @@ export function InfoModal({
 const styles = StyleSheet.create({
   modalBackdrop: {
     ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
     zIndex: 0,
   },
   modalContainer: {

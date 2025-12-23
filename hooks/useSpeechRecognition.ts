@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 
 // Типы для модуля распознавания речи
 type SpeechRecognitionModule = {
@@ -127,6 +127,17 @@ export const useSpeechRecognition = () => {
   const clearTranscript = useCallback(() => {
     setTranscript('');
   }, []);
+
+  // Cleanup: останавливаем запись при размонтировании компонента
+  useEffect(() => {
+    return () => {
+      if (isRecording && ExpoSpeechRecognitionModule) {
+        ExpoSpeechRecognitionModule.stop().catch(err =>
+          console.error('Error stopping recording on unmount:', err)
+        );
+      }
+    };
+  }, [isRecording]);
 
   return {
     isRecording,

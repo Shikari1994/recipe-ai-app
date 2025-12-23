@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useMemo } from 'react';
 import { WALLPAPERS, WallpaperConfig, getDefaultWallpaperId } from '@/constants/wallpapers';
 
 /**
@@ -8,14 +8,10 @@ import { WALLPAPERS, WallpaperConfig, getDefaultWallpaperId } from '@/constants/
  * @returns конфигурация обоев
  */
 export function useWallpaper(isDark: boolean) {
-  const [wallpaperConfig, setWallpaperConfig] = useState<WallpaperConfig | null>(null);
-
-  useEffect(() => {
+  const wallpaperConfig = useMemo<WallpaperConfig | null>(() => {
     const wallpaperId = getDefaultWallpaperId(isDark);
     const wallpaper = WALLPAPERS.find(w => w.id === wallpaperId);
-    if (wallpaper) {
-      setWallpaperConfig(wallpaper);
-    }
+    return wallpaper || null;
   }, [isDark]);
 
   return wallpaperConfig;

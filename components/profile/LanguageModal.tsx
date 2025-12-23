@@ -12,7 +12,7 @@ import { BlurView } from 'expo-blur';
 import { useTheme } from '@/utils/ThemeContext';
 import { useLanguage } from '@/utils/LanguageContext';
 import { LANGUAGES } from '@/constants/languages';
-import { COLORS } from '@/constants/colors';
+import { getThemeColors } from '@/constants/colors';
 import { scale, verticalScale, fontScale, moderateScale } from '@/utils/responsive';
 
 type LanguageModalProps = {
@@ -23,6 +23,7 @@ type LanguageModalProps = {
 export const LanguageModal: React.FC<LanguageModalProps> = ({ visible, onClose }) => {
   const { colors, isDark } = useTheme();
   const { language, setLanguage, t } = useLanguage();
+  const themeColors = getThemeColors(isDark);
 
   const handleSelectLanguage = async (code: string) => {
     await setLanguage(code);
@@ -65,7 +66,7 @@ export const LanguageModal: React.FC<LanguageModalProps> = ({ visible, onClose }
                   styles.languageItem,
                   {
                     backgroundColor: language === item.code
-                      ? COLORS.primary + '20'
+                      ? themeColors.primaryLight
                       : 'transparent',
                   },
                 ]}
@@ -80,7 +81,7 @@ export const LanguageModal: React.FC<LanguageModalProps> = ({ visible, onClose }
                   </Text>
                 </View>
                 {language === item.code && (
-                  <Ionicons name="checkmark-circle" size={moderateScale(24)} color={COLORS.primary} />
+                  <Ionicons name="checkmark-circle" size={moderateScale(24)} color={themeColors.primary} />
                 )}
               </TouchableOpacity>
             )}
@@ -94,6 +95,7 @@ export const LanguageModal: React.FC<LanguageModalProps> = ({ visible, onClose }
 const styles = StyleSheet.create({
   backdrop: {
     ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
   },
   container: {
     flex: 1,

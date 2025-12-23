@@ -1,10 +1,10 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import {
   View,
   StyleSheet,
   ImageBackground,
   Platform,
-  ScrollView,
+  FlatList,
   Keyboard,
   Animated,
   Text,
@@ -32,11 +32,12 @@ import { useImagePicker, useChatMessages, useSpeechRecognition, useChats, useWal
 import { verticalScale, fontScale } from '@/utils/responsive';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import type { Message } from '@/types';
 
 export default function ChatScreen() {
   const { isDark } = useTheme();
   const { t } = useLanguage();
-  const themeColors = getThemeColors(isDark);
+  const themeColors = useMemo(() => getThemeColors(isDark), [isDark]);
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const [inputText, setInputText] = useState('');
@@ -180,6 +181,61 @@ export default function ChatScreen() {
     router.push('/(tabs)/profile');
   }, [router]);
 
+  // Колбэки для FlatList
+  const renderMessage = useCallback(({ item: message, index }: { item: Message; index: number }) => (
+    <AnimatedMessage key={message.id} index={index}>
+      {message.isUser ? (
+        <UserMessageBubble text={message.text} image={message.image} />
+      ) : message.isLoading ? (
+        <LoadingMessageBubble text={message.text} isDark={isDark} />
+      ) : message.aiRecipes && message.aiRecipes.length > 0 ? (
+        <AIMessageBubble
+          text={message.text}
+          recipes={message.aiRecipes}
+          isDark={isDark}
+          onRecipePress={handleRecipePress}
+        />
+      ) : (
+        <AITextMessageBubble text={message.text} />
+      )}
+    </AnimatedMessage>
+  ), [isDark, handleRecipePress]);
+
+  const keyExtractor = useCallback((item: Message) => item.id, []);
+
+  const ListHeaderComponent = useCallback(() => (
+    messages.length === 0 && keyboardHeight === 0 ? (
+      <View style={styles.welcomeContainer}>
+        <Text style={[styles.welcomeTitle, { color: isDark ? themeColors.text : '#444444' }]}>
+          {t.welcome.title}
+        </Text>
+        <Text style={[styles.welcomeSubtitle, { color: themeColors.textSecondary }]}>
+          {t.welcome.subtitle}
+        </Text>
+      </View>
+    ) : null
+  ), [messages.length, keyboardHeight, themeColors, isDark, t]);
+
+  // Мемоизированные inline стили
+  const messagesContentStyle = useMemo(() => ([
+    styles.messagesContent,
+    messages.length === 0 && styles.emptyMessagesContent,
+    {
+      paddingTop: insets.top + verticalScale(8) + verticalScale(56) + SPACING.base,
+      paddingBottom: SPACING.md,
+    }
+  ]), [messages.length, insets.top]);
+
+  const inputWrapperStyle = useMemo(() => ([
+    styles.inputWrapper,
+    {
+      paddingBottom: keyboardHeight > 0
+        ? (insets.bottom || SPACING.base) + SPACING.xxl
+        : (insets.bottom || SPACING.base) + SPACING.sm,
+      marginBottom: keyboardHeight > 0 ? SPACING.md : 0,
+    }
+  ]), [insets.bottom, keyboardHeight]);
+
   const renderContent = useCallback(() => {
     return (
       <KeyboardAvoidingView
@@ -187,55 +243,24 @@ export default function ChatScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
       >
-        {/* ScrollView с сообщениями */}
-        <ScrollView
+        {/* FlatList с сообщениями */}
+        <FlatList
           ref={scrollViewRef}
+          data={messages}
+          renderItem={renderMessage}
+          keyExtractor={keyExtractor}
+          ListHeaderComponent={ListHeaderComponent}
           style={styles.messagesContainer}
-          contentContainerStyle={[
-            styles.messagesContent,
-            messages.length === 0 && styles.emptyMessagesContent,
-            {
-              paddingTop: insets.top + verticalScale(8) + verticalScale(56) + SPACING.base,
-              // Отступ снизу только для контента
-              paddingBottom: SPACING.md,
-            }
-          ]}
+          contentContainerStyle={messagesContentStyle}
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="interactive"
-          onContentSizeChange={() => {
-            scrollToBottom();
-          }}
-        >
-        {messages.length === 0 && keyboardHeight === 0 && (
-          <View style={styles.welcomeContainer}>
-            <Text style={[styles.welcomeTitle, { color: themeColors.text }]}>
-              {t.welcome.title}
-            </Text>
-            <Text style={[styles.welcomeSubtitle, { color: themeColors.textSecondary }]}>
-              {t.welcome.subtitle}
-            </Text>
-          </View>
-        )}
-
-        {messages.map((message, index) => (
-          <AnimatedMessage key={message.id} index={index}>
-            {message.isUser ? (
-              <UserMessageBubble text={message.text} image={message.image} />
-            ) : message.isLoading ? (
-              <LoadingMessageBubble text={message.text} />
-            ) : message.aiRecipes && message.aiRecipes.length > 0 ? (
-              <AIMessageBubble
-                text={message.text}
-                recipes={message.aiRecipes}
-                isDark={isDark}
-                onRecipePress={handleRecipePress}
-              />
-            ) : (
-              <AITextMessageBubble text={message.text} />
-            )}
-          </AnimatedMessage>
-        ))}
-      </ScrollView>
+          onContentSizeChange={scrollToBottom}
+          removeClippedSubviews={true}
+          maxToRenderPerBatch={10}
+          updateCellsBatchingPeriod={50}
+          windowSize={21}
+          initialNumToRender={15}
+        />
 
       {/* Header поверх ScrollView */}
       <ChatHeader
@@ -247,12 +272,7 @@ export default function ChatScreen() {
       />
 
       {/* MessageInput - внизу контейнера */}
-      <View style={[
-        styles.inputWrapper,
-        {
-          paddingBottom: (insets.bottom || SPACING.base) + SPACING.sm,
-        }
-      ]}>
+      <View style={inputWrapperStyle}>
         <MessageInput
           inputText={inputText}
           selectedImage={selectedImage}
@@ -271,22 +291,23 @@ export default function ChatScreen() {
       </KeyboardAvoidingView>
     );
   }, [
-    scrollViewRef,
     messages,
-    insets,
-    keyboardHeight,
-    themeColors,
-    t,
-    isDark,
+    renderMessage,
+    keyExtractor,
+    ListHeaderComponent,
+    messagesContentStyle,
+    inputWrapperStyle,
     scrollToBottom,
-    handleRecipePress,
+    insets,
     activeChat,
     inputText,
     selectedImage,
     canSend,
+    isDark,
     isRecording,
     speechError,
     pulseAnim,
+    t,
     setInputText,
     handleSendMessage,
     showImageOptions,
@@ -374,23 +395,23 @@ const styles = StyleSheet.create({
   emptyMessagesContent: {
     flexGrow: 1,
     justifyContent: 'center',
-    alignItems: 'center',
+    alignItems: 'flex-start',
   },
   welcomeContainer: {
-    width: '100%',
-    paddingHorizontal: SPACING.base,
+    maxWidth: '90%',
+    paddingLeft: SPACING.lg,
     alignItems: 'flex-start',
   },
   welcomeTitle: {
-    fontSize: fontScale(28),
-    fontWeight: '600',
+    fontSize: fontScale(24),
+    fontWeight: '500',
     marginBottom: verticalScale(4),
-    lineHeight: fontScale(36),
+    lineHeight: fontScale(32),
   },
   welcomeSubtitle: {
-    fontSize: fontScale(28),
-    fontWeight: '400',
-    lineHeight: fontScale(36),
+    fontSize: fontScale(24),
+    fontWeight: '300',
+    lineHeight: fontScale(32),
   },
   inputWrapper: {
     paddingHorizontal: SPACING.base,

@@ -1,17 +1,20 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { AnimatedDots } from './AnimatedDots';
-import { COLORS } from '@/constants/colors';
+import { getThemeColors } from '@/constants/colors';
 import { scale, verticalScale, fontScale, moderateScale } from '@/utils/responsive';
 
 type LoadingMessageBubbleProps = {
   text: string;
+  isDark: boolean;
 };
 
-const LoadingMessageBubbleComponent = ({ text }: LoadingMessageBubbleProps) => {
+const LoadingMessageBubbleComponent = ({ text, isDark }: LoadingMessageBubbleProps) => {
+  const themeColors = useMemo(() => getThemeColors(isDark), [isDark]);
+
   return (
     <View style={[styles.messageWrapper, styles.aiMessageWrapper]}>
-      <View style={[styles.messageBubble, { backgroundColor: COLORS.primary }]}>
+      <View style={[styles.messageBubble, { backgroundColor: themeColors.primary }]}>
         <View style={styles.loadingContainer}>
           <Text style={[styles.messageText, { color: '#fff' }]}>
             {text}
@@ -50,5 +53,6 @@ const styles = StyleSheet.create({
   messageText: {
     fontSize: fontScale(15),
     lineHeight: fontScale(21),
+    flexShrink: 1,
   },
 });

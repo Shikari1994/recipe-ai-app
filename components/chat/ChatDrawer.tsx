@@ -13,7 +13,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { COLORS } from '@/constants/colors';
+import { COLORS, getThemeColors } from '@/constants/colors';
 import { scale, verticalScale, fontScale, moderateScale, BORDER_RADIUS } from '@/utils/responsive';
 import type { Chat } from '@/types';
 import { useLanguage } from '@/utils/LanguageContext';
@@ -45,6 +45,7 @@ export function ChatDrawer({
   const [searchQuery, setSearchQuery] = useState('');
   const { t, language } = useLanguage();
   const insets = useSafeAreaInsets();
+  const themeColors = useMemo(() => getThemeColors(isDark), [isDark]);
 
   // Фильтрация чатов по поиску
   const filteredGroups = useMemo(() => {
@@ -261,7 +262,7 @@ export function ChatDrawer({
             activeOpacity={0.8}
           >
             <LinearGradient
-              colors={COLORS.gradient.icon}
+              colors={themeColors.gradientIcon}
               style={styles.newChatGradient}
             >
               <Ionicons name="add" size={moderateScale(24)} color="#fff" />

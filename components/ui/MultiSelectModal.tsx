@@ -9,8 +9,7 @@ import {
   Animated,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { BlurCard } from './BlurCard';
-import { COLORS } from '@/constants/colors';
+import { getThemeColors } from '@/constants/colors';
 import { ANIMATION, SPACING } from '@/constants/ui';
 import { fontScale } from '@/utils/responsive';
 import { useLanguage } from '@/utils/LanguageContext';
@@ -41,12 +40,15 @@ export function MultiSelectModal<T extends string>({
   isDark,
 }: MultiSelectModalProps<T>) {
   const [selected, setSelected] = useState<T[]>(selectedValues);
+  const [hasChanges, setHasChanges] = useState(false);
   const slideAnim = useRef(new Animated.Value(0)).current;
   const { t } = useLanguage();
+  const themeColors = getThemeColors(isDark);
 
   useEffect(() => {
     if (visible) {
       setSelected(selectedValues);
+      setHasChanges(false);
       Animated.spring(slideAnim, {
         toValue: 1,
         useNativeDriver: true,
@@ -63,15 +65,38 @@ export function MultiSelectModal<T extends string>({
   }, [visible, selectedValues, slideAnim]);
 
   const toggleOption = (value: T) => {
-    setSelected(prev =>
-      prev.includes(value)
+    setSelected(prev => {
+      const newSelected = prev.includes(value)
         ? prev.filter(v => v !== value)
-        : [...prev, value]
-    );
+        : [...prev, value];
+      console.log('🔄 MultiSelectModal: Selection changed:', newSelected);
+      setHasChanges(true);
+      return newSelected;
+    });
   };
 
   const handleSave = () => {
+    console.log('💾 MultiSelectModal: Saving selections:', selected);
     onSave(selected);
+    setHasChanges(false);
+    onClose();
+  };
+
+  const handleClose = () => {
+    // Auto-save if there are changes
+    if (hasChanges) {
+      console.log('💾 MultiSelectModal: Auto-saving on close:', selected);
+      onSave(selected);
+    } else {
+      console.log('❌ MultiSelectModal: Closing without changes');
+    }
+    onClose();
+  };
+
+  const handleCancel = () => {
+    console.log('❌ MultiSelectModal: Cancelled, discarding changes');
+    setSelected(selectedValues);
+    setHasChanges(false);
     onClose();
   };
 
@@ -82,13 +107,13 @@ export function MultiSelectModal<T extends string>({
       visible={visible}
       transparent
       animationType="fade"
-      onRequestClose={onClose}
+      onRequestClose={handleClose}
     >
       <View style={styles.backdrop}>
         <TouchableOpacity
           style={StyleSheet.absoluteFillObject}
           activeOpacity={1}
-          onPress={onClose}
+          onPress={handleClose}
         />
         <Animated.View
           style={[
@@ -105,23 +130,22 @@ export function MultiSelectModal<T extends string>({
             },
           ]}
         >
-          <BlurCard
-            isDark={isDark}
-            intensity={80}
-            gradientColors={isDark ? COLORS.gradient.purple.dark : COLORS.gradient.purple.light}
-            style={styles.modal}
-            contentStyle={styles.content}
-            borderRadius={20}
-            borderColor={isDark ? COLORS.purple.medium : COLORS.purple.light}
-            withShadow={true}
+          <View
+            style={[
+              styles.modal,
+              {
+                backgroundColor: isDark ? '#1a1a1a' : '#ffffff',
+              },
+            ]}
           >
+            <View style={styles.content}>
               {/* Header */}
               <View style={styles.header}>
                 <Text style={[styles.title, { color: isDark ? '#fff' : '#000' }]}>
                   {title}
                 </Text>
-                <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-                  <Ionicons name="close" size={24} color={COLORS.primary} />
+                <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
+                  <Ionicons name="close" size={24} color={themeColors.primary} />
                 </TouchableOpacity>
               </View>
 
@@ -136,11 +160,11 @@ export function MultiSelectModal<T extends string>({
                         styles.option,
                         {
                           backgroundColor: isSelected
-                            ? 'rgba(138, 43, 226, 0.2)'
-                            : 'rgba(138, 43, 226, 0.05)',
+                            ? themeColors.primaryLight
+                            : isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.02)',
                           borderColor: isSelected
-                            ? COLORS.primary
-                            : 'rgba(138, 43, 226, 0.2)',
+                            ? themeColors.primary
+                            : themeColors.primaryLight,
                         },
                       ]}
                       onPress={() => toggleOption(option.value)}
@@ -150,7 +174,7 @@ export function MultiSelectModal<T extends string>({
                         <Ionicons
                           name={option.icon}
                           size={20}
-                          color={isSelected ? COLORS.primary : isDark ? '#999' : '#666'}
+                          color={isSelected ? themeColors.primary : isDark ? '#999' : '#666'}
                         />
                       )}
                       <Text
@@ -158,7 +182,7 @@ export function MultiSelectModal<T extends string>({
                           styles.optionLabel,
                           {
                             color: isSelected
-                              ? COLORS.primary
+                              ? themeColors.primary
                               : isDark
                               ? '#ccc'
                               : '#333',
@@ -167,9 +191,9 @@ export function MultiSelectModal<T extends string>({
                       >
                         {option.label}
                       </Text>
-                      <View style={styles.checkbox}>
+                      <View style={[styles.checkbox, { borderColor: themeColors.primary }]}>
                         {isSelected && (
-                          <Ionicons name="checkmark" size={16} color={COLORS.primary} />
+                          <Ionicons name="checkmark" size={16} color={themeColors.primary} />
                         )}
                       </View>
                     </TouchableOpacity>
@@ -180,14 +204,24 @@ export function MultiSelectModal<T extends string>({
               {/* Actions */}
               <View style={styles.actions}>
                 <TouchableOpacity
-                  style={[styles.button, styles.cancelButton]}
-                  onPress={onClose}
+                  style={[
+                    styles.button,
+                    styles.cancelButton,
+                    { backgroundColor: themeColors.primaryLight, borderColor: themeColors.primary }
+                  ]}
+                  onPress={handleCancel}
                   activeOpacity={0.7}
                 >
-                  <Text style={styles.cancelButtonText}>{t.common.cancel}</Text>
+                  <Text style={[styles.cancelButtonText, { color: themeColors.primary }]}>
+                    {t.common.cancel}
+                  </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  style={[styles.button, styles.saveButton]}
+                  style={[
+                    styles.button,
+                    styles.saveButton,
+                    { backgroundColor: themeColors.primary }
+                  ]}
                   onPress={handleSave}
                   activeOpacity={0.7}
                 >
@@ -196,7 +230,8 @@ export function MultiSelectModal<T extends string>({
                   </Text>
                 </TouchableOpacity>
               </View>
-          </BlurCard>
+            </View>
+          </View>
         </Animated.View>
       </View>
     </Modal>
@@ -206,15 +241,17 @@ export function MultiSelectModal<T extends string>({
 const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: 'rgba(0, 0, 0, 0.85)',
     justifyContent: 'flex-end',
   },
   modalContainer: {
     maxHeight: '80%',
+    width: '100%',
   },
   modal: {
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
+    overflow: 'hidden',
   },
   content: {
     paddingHorizontal: SPACING.xl,
@@ -256,7 +293,6 @@ const styles = StyleSheet.create({
     height: 24,
     borderRadius: 6,
     borderWidth: 2,
-    borderColor: COLORS.primary,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -272,15 +308,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   cancelButton: {
-    backgroundColor: 'rgba(138, 43, 226, 0.1)',
     borderWidth: 1,
-    borderColor: COLORS.primary,
   },
   saveButton: {
-    backgroundColor: COLORS.primary,
   },
   cancelButtonText: {
-    color: COLORS.primary,
     fontSize: fontScale(16),
     fontWeight: '600',
   },

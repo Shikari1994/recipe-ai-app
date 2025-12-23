@@ -4,8 +4,9 @@ import { ThemeProvider, useTheme } from '@/utils/ThemeContext';
 import { LanguageProvider } from '@/utils/LanguageContext';
 import { useFonts, Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold } from '@expo-google-fonts/inter';
 import * as SplashScreen from 'expo-splash-screen';
+import * as SystemUI from 'expo-system-ui';
 import { useEffect } from 'react';
-import { Text, TextInput } from 'react-native';
+import { Text, TextInput, Platform } from 'react-native';
 import { PaperProvider } from 'react-native-paper';
 import { customDarkTheme, customLightTheme } from '@/constants/paperTheme';
 
@@ -43,12 +44,23 @@ const originalTextInputRender = (TextInput as any).render;
 };
 
 function RootLayoutContent() {
-  const { isDark } = useTheme();
+  const { isDark, colors } = useTheme();
   const paperTheme = isDark ? customDarkTheme : customLightTheme;
+
+  // Set navigation bar color based on theme
+  useEffect(() => {
+    if (Platform.OS === 'android') {
+      SystemUI.setBackgroundColorAsync(colors.background);
+    }
+  }, [isDark, colors.background]);
 
   return (
     <PaperProvider theme={paperTheme}>
-      <StatusBar style={isDark ? 'light' : 'dark'} />
+      <StatusBar
+        style={isDark ? 'light' : 'dark'}
+        backgroundColor={isDark ? '#1a1a1a' : '#ffffff'}
+        translucent={false}
+      />
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="(tabs)" />
         <Stack.Screen

@@ -9,7 +9,7 @@ module.exports = {
     icon: "./assets/images/icon.png",
     scheme: "myapp",
     userInterfaceStyle: "automatic",
-    newArchEnabled: false,
+    newArchEnabled: true,
     backgroundColor: "#8A2BE2",
     splash: {
       image: "./assets/images/icon.png",
@@ -26,17 +26,27 @@ module.exports = {
     android: {
       package: "com.myapp.recipeai",
       versionCode: 3,
+      compileSdkVersion: 35,
+      targetSdkVersion: 35,
+      minSdkVersion: 23,
       permissions: [
         "android.permission.CAMERA",
-        "android.permission.READ_EXTERNAL_STORAGE",
-        "android.permission.WRITE_EXTERNAL_STORAGE",
         "android.permission.READ_MEDIA_IMAGES",
         "android.permission.RECORD_AUDIO"
       ],
-      softwareKeyboardLayoutMode: "resize",
+      softwareKeyboardLayoutMode: "pan",
       adaptiveIcon: {
         foregroundImage: "./assets/images/adaptive-icon-foreground.png",
         backgroundColor: "#8A2BE2"
+      },
+      navigationBar: {
+        backgroundColor: "#000000",
+        barStyle: "light-content"
+      },
+      statusBar: {
+        backgroundColor: "#1a1a1a",
+        barStyle: "light-content",
+        translucent: false
       }
     },
     plugins: [

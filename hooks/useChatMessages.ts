@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { ScrollView } from 'react-native';
+import { FlatList } from 'react-native';
 import uuid from 'react-native-uuid';
 import { getRecipesFromAI } from '@/utils/aiService';
 import { saveAIRecipe } from '@/utils/storage';
@@ -11,7 +11,7 @@ export function useChatMessages(activeChatId: string | null) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [selectedRecipe, setSelectedRecipe] = useState<AIRecipe | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
-  const scrollViewRef = useRef<ScrollView>(null);
+  const scrollViewRef = useRef<FlatList>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
   const { t, language } = useLanguage();
 
@@ -126,6 +126,15 @@ export function useChatMessages(activeChatId: string | null) {
   const closeModal = useCallback(() => {
     setModalVisible(false);
     setSelectedRecipe(null);
+  }, []);
+
+  // Cleanup: отменяем все активные запросы при размонтировании компонента
+  useEffect(() => {
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
   }, []);
 
   return {

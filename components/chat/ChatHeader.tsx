@@ -1,9 +1,9 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { PlatformBlur } from '@/components/ui/PlatformBlur';
 import { LinearGradient } from 'expo-linear-gradient';
-import { COLORS } from '@/constants/colors';
+import { getThemeColors } from '@/constants/colors';
 import { scale, verticalScale, fontScale, moderateScale } from '@/utils/responsive';
 
 type ChatHeaderProps = {
@@ -15,6 +15,8 @@ type ChatHeaderProps = {
 };
 
 const ChatHeaderComponent = ({ title, isDark, topInset, onMenuPress, onFavoritesPress }: ChatHeaderProps) => {
+  const themeColors = useMemo(() => getThemeColors(isDark), [isDark]);
+
   return (
     <View
       style={[
@@ -31,7 +33,7 @@ const ChatHeaderComponent = ({ title, isDark, topInset, onMenuPress, onFavorites
         style={styles.headerBlur}
       />
       <LinearGradient
-        colors={isDark ? COLORS.gradient.purple.dark : COLORS.gradient.purple.light}
+        colors={isDark ? themeColors.gradientDark : themeColors.gradientLight}
         style={styles.headerGradient}
       />
       <View style={[
@@ -72,7 +74,7 @@ const ChatHeaderComponent = ({ title, isDark, topInset, onMenuPress, onFavorites
           <Ionicons
             name="heart"
             size={moderateScale(26)}
-            color={COLORS.primary}
+            color={themeColors.primary}
           />
         </TouchableOpacity>
       </View>
